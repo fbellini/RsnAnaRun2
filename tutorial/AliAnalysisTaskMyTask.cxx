@@ -36,14 +36,14 @@ using namespace std;            // std namespace: so you can do things like 'cou
 ClassImp(AliAnalysisTaskMyTask) // classimp: necessary for root
 
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask() : AliAnalysisTaskSE(), 
-    fAOD(0), fOutputList(0), fHistPt(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fNEvents(0), fHistEtaPhi(0), fTPCSignal(0), fTOFSignal(0)
 {
     // default constructor, don't allocate memory here!
     // this is used by root for IO purposes, it needs to remain empty
 }
 //_____________________________________________________________________________
 AliAnalysisTaskMyTask::AliAnalysisTaskMyTask(const char* name) : AliAnalysisTaskSE(name),
-    fAOD(0), fOutputList(0), fHistPt(0)
+    fAOD(0), fOutputList(0), fHistPt(0), fNEvents(0), fHistEtaPhi(0), fTPCSignal(0), fTOFSignal(0)
 {
     // constructor
     DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -84,19 +84,25 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
     fNEvents = new TH1I("fNEvents", "fNEvents", 2, 0, 2);
     fNEvents->GetXaxis()->SetBinLabel(0, "accepted");
     fNEvents->GetXaxis()->SetBinLabel(1, "v_z>10cm");
-    fHistEtaPhi = new TH2F("fHistEtaPhi", "fHistEtaPhi", 10, -4.0, 4.0, 10, 0.0, 7.0);
+    fHistEtaPhi = new TH2F("fHistEtaPhi", "fHistEtaPhi", 400, -2.0, 2.0, 700, 0.0, 7.0);
     fHistEtaPhi->GetXaxis()->SetTitle("Eta");
     fHistEtaPhi->GetYaxis()->SetTitle("Phi");
-    fPTPCSignal = new TH2F("fPTPCSignal", "fPTPCSignal", 10, 0.0, 30.0, 10, -5.0, 5.0);
-    fPTPCSignal->GetXaxis()->SetTitle("Pions");
-    fPTPCSignal->GetYaxis()->SetTitle("TPC Signal");
+    fTPCSignal = new TH2F("fPTPCSignal", "fPTPCSignal", 300, 0.0, 30.0, 10, -5.0, 5.0);
+    fTPCSignal->GetXaxis()->SetTitle("Pions");
+    fTPCSignal->GetYaxis()->SetTitle("TPC Signal");
+    fTOFSignal = new TH2F("fTOFSignal", "fTOFSignal", 500, 0.0, 500, 100, -5.0, -5.0);
+    fTOFSignal->GetXaxis()->SetTitle("Pions");
+    fTOFSignal->GetYaxis()->SetTitle("TOF Signal");
+    
     
     fOutputList->Add(fHistPt);          // don't forget to add it to the list! the list will be written to file, so if you want            // your histogram in the output file, add it to the list!
     
     
     fOutputList->Add(fNEvents);
     fOutputList->Add(fHistEtaPhi);
-    fOutputList->Add(fPTPCSignal);
+    fOutputList->Add(fTPCSignal);
+    fOutputList->Add(fTOFSignal);
+
     
     PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the
                                         // fOutputList object. the manager will in the end take care of writing your output to file
@@ -140,7 +146,9 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
         //cout << track->Eta() << endl;
         
         fHistEtaPhi->Fill(track->Eta(),track->Phi());
-        fPTPCSignal->Fill(track->P(), track->GetTPCsignal());
+        fTPCSignal->Fill(track->P(), track->GetTPCsignal());
+        fTOFSignal->Fill(track->P(), track->GetTOFsignal());
+
         
     }                                                   // continue until all the tracks are processed
     PostData(1, fOutputList);                           // stream the results the analysis of this event to
