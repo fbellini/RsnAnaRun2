@@ -90,7 +90,7 @@ void AliAnalysisTaskMyTask::UserCreateOutputObjects()
     fTPCSignal = new TH2F("fPTPCSignal", "fPTPCSignal", 300, 0.0, 30.0, 10, -5.0, 5.0);
     fTPCSignal->GetXaxis()->SetTitle("Pions");
     fTPCSignal->GetYaxis()->SetTitle("TPC Signal");
-    fTOFSignal = new TH2F("fTOFSignal", "fTOFSignal", 500, 0.0, 500, 100, -5.0, -5.0);
+    fTOFSignal = new TH2F("fTOFSignal", "fTOFSignal", 500, 0.0, 50.0, 100, -5.0, -5.0);
     fTOFSignal->GetXaxis()->SetTitle("Pions");
     fTOFSignal->GetYaxis()->SetTitle("TOF Signal");
     
