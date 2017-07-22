@@ -26,9 +26,10 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         AliAODEvent*            fAOD;           //! input event
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
-	TH1I*					fNEvents;
-	TH2F*					fHistEtaPhi;
-	TH2F*					fPTPCSignal;
+	TH1I*			fNEvents;	//! number of events
+	TH2F*			fHistEtaPhi;	//! eta phi histogram
+	TH2F*			fTPCSignal;	//! pions TPC histogram
+	TH2F*			fTOFSignal;	//! pions TOF histogram
 
 		
 
