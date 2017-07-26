@@ -1,4 +1,6 @@
-void runAnalysis()
+void runAnalysis(Bool_t isAOD = kTRUE,
+		 TString inputFile = "244540_pass4_LHC15n_AliAOD.root" //data from july 10th
+		 ) 
 {
     // set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
     Bool_t local = kTRUE;
@@ -11,9 +13,13 @@ void runAnalysis()
 
     // create the analysis manager 
     AliAnalysisManager *mgr = new AliAnalysisManager("AnalysisTaskExample");
-    AliAODInputHandler *aodH = new AliAODInputHandler(); //UTILISSIMO
-    mgr->SetInputEventHandler(aodH); //SET TO THE MANAGER
-
+    if (isAOD) {
+      AliAODInputHandler *aodH = new AliAODInputHandler(); //UTILISSIMO
+      mgr->SetInputEventHandler(aodH); //SET TO THE MANAGER
+    } else {
+      AliESDInputHandler *esdH = new AliESDInputHandler();
+      mgr->SetInputEventHandler(esdH); //SET TO THE MANAGER
+    }
     // compile the class (locally) 
     gROOT->LoadMacro("AliAnalysisTaskMyTask.cxx++g"); //ROOT SI PRENDE CURA DI VOI: ++g FA SI CHE ROOT COMPILI SENZA INTERPRETARE (LOAD_LENTO) --> VA LINEA PER LINEA)
     // load the addtask macro
@@ -26,13 +32,14 @@ void runAnalysis()
     mgr->PrintStatus();
     mgr->SetUseProgressBar(1, 25);
 
-    if(local) {
+    if (local) {
         // if you want to run locally, we need to define some input
-        TChain* chain = new TChain("aodTree");
-        // add a few files to the chain (change this so that your local files are added)
-        chain->Add("244540_pass4_LHC15n_AliAOD.root"); //data from july 10th
-        // start the analysis locally, reading the events from the tchain
-        mgr->StartAnalysis("local", chain);
+      TString treeName = isAOD? "aodTree" : "esdTree";
+      TChain* chain = new TChain(treeName.Data());
+      // add a few files to the chain (change this so that your local files are added)
+      chain->Add(inputFile.Data());
+      // start the analysis locally, reading the events from the tchain
+      mgr->StartAnalysis("local", chain);
     } else {
         // if we want to run on grid, we create and configure the plugin
         AliAnalysisAlien *alienHandler = new AliAnalysisAlien();

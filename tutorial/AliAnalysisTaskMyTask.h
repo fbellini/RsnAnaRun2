@@ -23,7 +23,8 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         virtual void            Terminate(Option_t* option);
 
     private:
-        AliAODEvent*            fAOD;           //! input event
+	AliVVertex*             fPrimaryVertex;//!<! Primary vertex pointer
+	
         TList*                  fOutputList;    //! output list
         TH1F*                   fHistPt;        //! dummy histogram
 	TH1I*			fNEvents;	//! number of events
