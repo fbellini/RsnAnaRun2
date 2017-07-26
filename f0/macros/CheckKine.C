@@ -137,5 +137,14 @@ void CheckKine(TString fname = "galice.root",
   histof0kk->Write();
   fout->Close();
 
-return;
+  TCanvas * c1 = new TCanvas("c1","c1", 1200, 800);
+  c1->Divide(3,2);
+  c1->cd(1); histoPDGCode->Draw(); 
+  c1->cd(2); histof0pt->Draw("hist");
+  c1->cd(3); histof0y->Draw("hist");
+  c1->cd(4); histof0pipi->Draw("colz");
+  c1->cd(5); histof0kk->Draw("colz");
+
+  c1->Print("checkKineOut.pdf");
+  return;
 }
