@@ -34,7 +34,7 @@ void CheckKine(TString fname = "galice.root",
   TH1F *histoPDGCode = new TH1F("histoPDGCode", "histoPDGCode", 300, -1000.0, 3000.0);
   TH1F *histof0pt = new TH1F("histof0pt", "histof0pt", 150, 0., 15.0);
   TH1F *histof0y = new TH1F("histof0y", "histof0y", 100, -1.0, 1.0);
-  TH1F *histof0mother = new TH1F("histof0mother", "histof0mother", 200, -2.0, 0.0);	
+  TH1F *histof0mother = new TH1F("histof0mother", "histof0mother", 20, -2.0, 0.0);	
   TH2F *histof0pipi = new TH2F("histof0pipi","histof0pipi", 150, 0., 0.2, 150, 0., 0.2);
   TH2F *histof0kk = new TH2F("histof0kk","histof0kk", 150, 0., 0.2, 150, 0., 0.2);
   gStyle->SetOptStat(111111); //bin overflow	
