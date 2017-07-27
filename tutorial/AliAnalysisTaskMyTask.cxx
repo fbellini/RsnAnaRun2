@@ -145,6 +145,11 @@ void AliAnalysisTaskMyTask::UserExec(Option_t *)
   fNEvents->Fill(3);
 
   //Add here additional vertex cuts if needed
+	
+   Bool_t IncompleteDAQ = event->IsIncompleteDAQ();
+   if(fPrimaryVertex && IncompleteDAQ){
+   return;
+    }
 
   //fill histogram with number of accepted events
   fNEvents->Fill(0);
