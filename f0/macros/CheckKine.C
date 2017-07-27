@@ -34,8 +34,10 @@ void CheckKine(TString fname = "galice.root",
   TH1F *histoPDGCode = new TH1F("histoPDGCode", "histoPDGCode", 300, -1000.0, 3000.0);
   TH1F *histof0pt = new TH1F("histof0pt", "histof0pt", 150, 0., 15.0);
   TH1F *histof0y = new TH1F("histof0y", "histof0y", 100, -1.0, 1.0);
+  TH1F *histof0mother = new TH1F("histof0mother", "histof0mother", 200, -2.0, 0.0);	
   TH2F *histof0pipi = new TH2F("histof0pipi","histof0pipi", 150, 0., 0.2, 150, 0., 0.2);
   TH2F *histof0kk = new TH2F("histof0kk","histof0kk", 150, 0., 0.2, 150, 0., 0.2);
+  gStyle->SetOptStat(111111); //bin overflow	
   outKine<<"Table of PDG Codes"<<endl;
  
   
@@ -75,7 +77,7 @@ void CheckKine(TString fname = "galice.root",
 		  
 		  histof0pt->Fill(mom->Pt());
 		  histof0y->Fill(mom->Y());
-      	
+      	          histof0mother->Fill(mom->GetMother(0));
 	  }
    
 	 
@@ -128,23 +130,27 @@ void CheckKine(TString fname = "galice.root",
   } /* loop over events */
 
   /* write output */
-  fout->cd();
-  hqT->Write();
-  histoPDGCode->Write();
-  histof0pt->Write();
-  histof0y->Write();
-  histof0pipi->Write();
-  histof0kk->Write();
-  fout->Close();
-
   TCanvas * c1 = new TCanvas("c1","c1", 1200, 800);
   c1->Divide(3,2);
   c1->cd(1); histoPDGCode->Draw(); 
   c1->cd(2); histof0pt->Draw("hist");
   c1->cd(3); histof0y->Draw("hist");
-  c1->cd(4); histof0pipi->Draw("colz");
-  c1->cd(5); histof0kk->Draw("colz");
+  c1->cd(4); histof0mother->Draw("hist");		
+  c1->cd(5); histof0pipi->Draw("colz");
+  c1->cd(6); histof0kk->Draw("colz");
 
   c1->Print("checkKineOut.pdf");
+	
+  fout->cd();
+  hqT->Write();
+  histoPDGCode->Write();
+  histof0pt->Write();
+  histof0y->Write();
+  histof0mother->Write();
+  histof0pipi->Write();
+  histof0kk->Write();
+  fout->Close();
+
+ 
   return;
 }
