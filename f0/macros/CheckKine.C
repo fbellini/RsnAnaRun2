@@ -29,7 +29,7 @@ void CheckKine(TString fname = "galice.root",
   TVector3 muonV, kaonV;
   TLorentzVector pion1V, pion2V, momV;
 	
-  Double_t pt2, OpeningAngle, OpeningAngle2, OpeningAngle3;
+  Double_t Pt2, OpeningAngle, OpeningAngle2, OpeningAngle3;
 
   /* output */
   TFile *fout = TFile::Open("OutKine.root", "RECREATE");  
@@ -44,7 +44,7 @@ void CheckKine(TString fname = "galice.root",
   TH2F *histoOpeningAngle = new TH2F("histoOpeningAngle","Daughters opening angle (#alpha); #alpha; p_{T, gen} (GeV/#it{c})", 400, 0., 4.0, 1000, 0., 10.0);
   TH2F *histoOpeningAngle2 = new TH2F("histoOpeningAngle2","Daughters opening angle (#alpha); #alpha; #it{y}_{gen}", 400, 0., 4.0, 200, -1., 1.0);
   TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #alpha; #it{#phi}_{gen}", 400, 0., 4.0, 700, 0., 7.0);
-  TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
+  TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 1000, 0., 10., 1000, 0., 10.);
   TH2F *histof0kk = new TH2F("histof0kk","f_{0}(980) #rightarrow K^{+}K^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
 
   gStyle->SetOptStat(111111); //bin overflow	
@@ -74,29 +74,29 @@ void CheckKine(TString fname = "galice.root",
       TParticle *mom = stack->Particle(momL);
 
       //Get first daughter
-      Int_t firstdaugL = particle->GetFirstDaughter();
-      if (firstdaugL <= 0) continue;
-      TParticle *firstdaug = stack->Particle(firstdaugL);
+      Int_t firstDaugL = particle->GetFirstDaughter();
+      if (firsDaugL <= 0) continue;
+      TParticle *firstDaug = stack->Particle(firstDaugL);
 
       //Get second daughter
-      Int_t seconddaugL = particle->GetDaughter(1);
-      if (seconddaugL <= 0) continue;
-      TParticle *seconddaug = stack->Particle(seconddaugL);
+      Int_t secondDaugL = particle->GetDaughter(1);
+      if (secondDaugL <= 0) continue;
+      TParticle *secondDaug = stack->Particle(secondDaugL);
 
       //Get last daughter
-      Int_t lastdaugL = particle->GetLastDaughter();
-      if (lastdaugL <= 0) continue;
-      TParticle *lastdaug = stack->Particle(lastdaugL);
+      Int_t lastDaugL = particle->GetLastDaughter();
+      if (lastDaugL <= 0) continue;
+      TParticle *lastDaug = stack->Particle(lastDaugL);
 
-      if (firstdaug) firstDaugPt = firstdaug->Pt();
-      if (seconddaug) secondDaugPt = seconddaug->Pt();
+      if (firstDaug) firstDaugPt = firstDaug->Pt();
+      if (secondDaug) secondDaugPt = secondDaug->Pt();
 
       histoPDGCode->Fill(TMath::Abs(particle->GetPdgCode())); /* histogram of the PDG codes */
 
       /*selecting f0 with PDG code*/
       if (mom->GetPdgCode()==f0PDG){		  
       
-	outKine<<particle->GetPdgCode()<<"\t\t\t"<<particle->GetName()<<"\t\t\t"<<mom->GetPdgCode()<<"\t\t\t"<<mom->GetName()<<"\t\t\t"<<firstdaug->GetPdgCode()<<"\t\t\t"<<lastdaug->GetPdgCode()<<endl;
+	outKine<<particle->GetPdgCode()<<"\t\t\t"<<particle->GetName()<<"\t\t\t"<<mom->GetPdgCode()<<"\t\t\t"<<mom->GetName()<<"\t\t\t"<<firstDaug->GetPdgCode()<<"\t\t\t"<<lastDaug->GetPdgCode()<<endl;
 	
 	/*histograms for pt and y of f0(980)*/      
 	histof0pt->Fill(mom->Pt());
@@ -104,47 +104,47 @@ void CheckKine(TString fname = "galice.root",
 	histof0mother->Fill(mom->GetMother(0));
 
 	//Get f0 first daughter
-	Int_t f0firstdaugL = mom->GetFirstDaughter();
-	if (f0firstdaugL <= 0) continue;
-	TParticle *f0firstdaug = stack->Particle(f0firstdaugL);
+	Int_t f0firstDaugL = mom->GetFirstDaughter();
+	if (f0firstDaugL <= 0) continue;
+	TParticle *f0firstDaug = stack->Particle(f0firstDaugL);
 
 	//Get f0 second daughter
-	Int_t f0seconddaugL = mom->GetDaughter(1);
-	if (f0seconddaugL <= 0) continue;
-	TParticle *f0seconddaug = stack->Particle(f0seconddaugL);
+	Int_t f0secondDaugL = mom->GetDaughter(1);
+	if (f0secondDaugL <= 0) continue;
+	TParticle *f0secondDaug = stack->Particle(f0secondDaugL);
 
 	//Get f0 last daughter
-	Int_t f0lastdaugL = mom->GetLastDaughter();
-	if (f0lastdaugL <= 0) continue;
-	TParticle *f0lastdaug = stack->Particle(f0lastdaugL);
+	Int_t f0lastDaugL = mom->GetLastDaughter();
+	if (f0lastDaugL <= 0) continue;
+	TParticle *f0lastDaug = stack->Particle(f0lastDaugL);
 
-	if (!f0firstdaug || !f0seconddaug) continue;
-	Float_t f0firstDaugPt = f0firstdaug->Pt();
-	Float_t f0secondDaugPt = f0seconddaug->Pt();
+	if (!f0firstDaug || !f0secondDaug) continue;
+	Float_t f0firstDaugPt = f0firstDaug->Pt();
+	Float_t f0secondDaugPt = f0secondDaug->Pt();
 
 	
 	/* 2D histograms for pt of first and second daughter of the f0(980)—> ππ */
-	if (TMath::Abs(f0firstdaug->GetPdgCode()) == pionPDG ||
-	    TMath::Abs(f0seconddaug->GetPdgCode()) == pionPDG) {
+	if (TMath::Abs(f0firstDaug->GetPdgCode()) == pionPDG ||
+	    TMath::Abs(f0secondDaug->GetPdgCode()) == pionPDG) {
 	  histof0pipi->Fill(f0firstDaugPt, f0secondDaugPt);
           OpeningAngle = pion1V.Angle(pion2V.Vect()); //Angle between products of decay
 	}	  
 	  
 	/* 2D histograms for pt of first and second daughter of the f0(980)—> KK   */
-	if(TMath::Abs(f0firstdaug->GetPdgCode()) == kaonPDG &&
-	   TMath::Abs(f0seconddaug->GetPdgCode()) == kaonPDG) {
+	if(TMath::Abs(f0firstDaug->GetPdgCode()) == kaonPDG &&
+	   TMath::Abs(f0secondDaug->GetPdgCode()) == kaonPDG) {
 	  histof0kk->Fill(f0firstDaugPt, f0secondDaugPt);
 	}
       	
 	/* Use the energy-momentum quadrivector to check the method TParticle::Pt() */
 	mom->Momentum(momV);
-	f0firstdaug->Momentum(pion1V);
-	f0seconddaug->Momentum(pion2V);
-	pt2=TMath::Sqrt((momV.Px())**2+(momV.Py())**2);
-	histof0pt2->Fill(pt2);
+	f0firstDaug->Momentum(pion1V);
+	f0secondDaug->Momentum(pion2V);
+	Pt2=TMath::Sqrt((momV.Px())**2+(momV.Py())**2);
+	histof0pt2->Fill(Pt2);
 
 	/* information on the daughters opening angle vs pT, eta and phi of the generated mother */
-	histoOpeningAngle->Fill(OpeningAngle, pt2);
+	histoOpeningAngle->Fill(OpeningAngle, Pt2);
 	histoOpeningAngle2->Fill(OpeningAngle, mom->Y());
 	histoOpeningAngle3->Fill(OpeningAngle, mom->Phi());
 	
