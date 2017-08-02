@@ -75,7 +75,7 @@ void CheckKine(TString fname = "galice.root",
 
       //Get first daughter
       Int_t firstDaugL = particle->GetFirstDaughter();
-      if (firsDaugL <= 0) continue;
+      if (firstDaugL <= 0) continue;
       TParticle *firstDaug = stack->Particle(firstDaugL);
 
       //Get second daughter
