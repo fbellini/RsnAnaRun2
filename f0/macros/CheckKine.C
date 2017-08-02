@@ -26,7 +26,10 @@ void CheckKine(TString fname = "galice.root",
   rl->LoadKinematics();
 
   /* calculation tools */
-  TVector3 muonV, kaonV, pion1V, pion2V, momV;
+  TVector3 muonV, kaonV;
+  TLorentzVector pion1V, pion2V, momV;
+	
+  Double_t pt2, OpeningAngle, OpeningAngle2, OpeningAngle3;
 
   /* output */
   TFile *fout = TFile::Open("OutKine.root", "RECREATE");  
@@ -35,8 +38,12 @@ void CheckKine(TString fname = "galice.root",
   TH1F *hqT = new TH1F("hqT", "", 1000, 0., 1.);
   TH1F *histoPDGCode = new TH1F("histoPDGCode", "histoPDGCode; PDG code; entries", 10001, -1.0, 10000.0);
   TH1F *histof0pt = new TH1F("histof0pt", "generated f_{0}(980) p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);
+  TH1F *histof0pt2 = new TH1F("histof0pt2", "generated f_{0}(980) p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);	
   TH1F *histof0y = new TH1F("histof0y", "generated f_{0}(980) rapidity; #it{y}_{gen}; entries", 100, -1.0, 1.0);
   TH1F *histof0mother = new TH1F("histof0mother", "label of f0 mother; label of f0 mother; entries", 102, -2.0, 100);	
+  TH2F *histoOpeningAngle = new TH2F("histoOpeningAngle","Daughters opening angle (#alpha); #alpha; p_{T, gen} (GeV/#it{c})", 400, 0., 4.0, 1000, 0., 10.0);
+  TH2F *histoOpeningAngle2 = new TH2F("histoOpeningAngle2","Daughters opening angle (#alpha); #alpha; #it{y}_{gen}", 400, 0., 4.0, 200, -1., 1.0);
+  TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #alpha; #it{#phi}_{gen}", 400, 0., 4.0, 700, 0., 7.0);
   TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
   TH2F *histof0kk = new TH2F("histof0kk","f_{0}(980) #rightarrow K^{+}K^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
 
@@ -120,6 +127,7 @@ void CheckKine(TString fname = "galice.root",
 	if (TMath::Abs(f0firstdaug->GetPdgCode()) == pionPDG ||
 	    TMath::Abs(f0seconddaug->GetPdgCode()) == pionPDG) {
 	  histof0pipi->Fill(f0firstDaugPt, f0secondDaugPt);
+          OpeningAngle = pion1V.Angle(pion2V.Vect()); //Angle between products of decay
 	}	  
 	  
 	/* 2D histograms for pt of first and second daughter of the f0(980)—> KK   */
@@ -127,6 +135,20 @@ void CheckKine(TString fname = "galice.root",
 	   TMath::Abs(f0seconddaug->GetPdgCode()) == kaonPDG) {
 	  histof0kk->Fill(f0firstDaugPt, f0secondDaugPt);
 	}
+      	
+	/* Use the energy-momentum quadrivector to check the method TParticle::Pt() */
+	mom->Momentum(momV);
+	f0firstdaug->Momentum(pion1V);
+	f0seconddaug->Momentum(pion2V);
+	pt2=TMath::Sqrt((momV.Px())**2+(momV.Py())**2);
+	histof0pt2->Fill(pt2);
+
+	/* information on the daughters opening angle vs pT, eta and phi of the generated mother */
+	histoOpeningAngle->Fill(OpeningAngle, pt2);
+	histoOpeningAngle2->Fill(OpeningAngle, mom->Y());
+	histoOpeningAngle3->Fill(OpeningAngle, mom->Phi());
+	
+	
       } //end checks on f0 PDG 
 
 	      
@@ -161,16 +183,27 @@ void CheckKine(TString fname = "galice.root",
   c1->cd(4); histof0mother->Draw("hist");		
   c1->cd(5); histof0pipi->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
   c1->cd(6); histof0kk->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
-
+	
+  TCanvas * c2 = new TCanvas("c2","c2", 1200, 800);
+  c2->Divide(3,1);
+  c2->cd(1); histoOpeningAngle->Draw("colz");
+  c2->cd(2); histoOpeningAngle2->Draw("colz");
+  c2->cd(3); histoOpeningAngle3->Draw("colz");
+	
   c1->Print("checkKineOut.pdf");
+  c2->Print("checkKineOut2.pdf");	
 	
   fout->cd();
   hqT->Write();
   histoPDGCode->Write();
   histof0pt->Write();
+  histof0pt2->Write();
   histof0y->Write();
   histof0mother->Write();
   histof0pipi->Write();
+  histoOpeningAngle->Write();
+  histoOpeningAngle2->Write();
+  histoOpeningAngle3->Write();
   histof0kk->Write();
   fout->Close();
 
