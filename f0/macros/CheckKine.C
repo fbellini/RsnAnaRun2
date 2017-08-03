@@ -41,9 +41,9 @@ void CheckKine(TString fname = "galice.root",
   TH1F *histof0pt2 = new TH1F("histof0pt2", "generated f_{0}(980) p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);	
   TH1F *histof0y = new TH1F("histof0y", "generated f_{0}(980) rapidity; #it{y}_{gen}; entries", 100, -1.0, 1.0);
   TH1F *histof0mother = new TH1F("histof0mother", "label of f0 mother; label of f0 mother; entries", 102, -2.0, 100);	
-  TH2F *histoOpeningAngle = new TH2F("histoOpeningAngle","Daughters opening angle (#alpha); #alpha; p_{T, gen} (GeV/#it{c})", 400, 0., 4.0, 1000, 0., 10.0);
-  TH2F *histoOpeningAngle2 = new TH2F("histoOpeningAngle2","Daughters opening angle (#alpha); #alpha; #it{y}_{gen}", 400, 0., 4.0, 200, -1., 1.0);
-  TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #alpha; #it{#phi}_{gen}", 400, 0., 4.0, 700, 0., 7.0);
+  TH2F *histoOpeningAngle = new TH2F("histoOpeningAngle","Daughters opening angle (#alpha); p_{T, gen} (GeV/#it{c}); #alpha (rad)", 1000, 0., 10.0, 400, 0., 4.0);
+  TH2F *histoOpeningAngle2 = new TH2F("histoOpeningAngle2","Daughters opening angle (#alpha); #it{y}_{gen}; #alpha (rad)", 200, -1., 1.0, 400, 0., 4.0);
+  TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #it{#phi}_{gen}; #alpha (rad)", 700, 0., 7.0, 400, 0., 4.0);
   TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 1000, 0., 10., 1000, 0., 10.);
   TH2F *histof0kk = new TH2F("histof0kk","f_{0}(980) #rightarrow K^{+}K^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
 
@@ -143,10 +143,10 @@ void CheckKine(TString fname = "galice.root",
 	Pt2=TMath::Sqrt((momV.Px())**2+(momV.Py())**2);
 	histof0pt2->Fill(Pt2);
 
-	/* information on the daughters opening angle vs pT, eta and phi of the generated mother */
-	histoOpeningAngle->Fill(OpeningAngle, Pt2);
-	histoOpeningAngle2->Fill(OpeningAngle, mom->Y());
-	histoOpeningAngle3->Fill(OpeningAngle, mom->Phi());
+	/* pT, eta and phi of the generated mother vs daughters opening angle */
+	histoOpeningAngle->Fill(Pt2, OpeningAngle);
+	histoOpeningAngle2->Fill(mom->Y(), OpeningAngle);
+	histoOpeningAngle3->Fill(mom->Phi(), OpeningAngle);
 	
 	
       } //end checks on f0 PDG 
