@@ -33,7 +33,8 @@ void CheckKine(TString fname = "galice.root",
   Double_t Pt2, OpeningAngle, OpeningAngle2, OpeningAngle3;
 
   /* output */
-  TFile *fout = TFile::Open("OutKine.root", "RECREATE");  
+  TFile *fout = TFile::Open("OutKine.root", "RECREATE");
+  TFile *fout2 = TFile::Open("OutESD.root", "RECREATE");	
   ofstream outKine;
   outKine.open("outKine.txt");
   TH1F *hqT = new TH1F("hqT", "", 1000, 0., 1.);
@@ -47,7 +48,10 @@ void CheckKine(TString fname = "galice.root",
   TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #it{#phi}_{gen}; #alpha (rad)", 700, 0., 7.0, 400, 0., 4.0);
   TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 1000, 0., 10., 1000, 0., 10.);
   TH2F *histof0kk = new TH2F("histof0kk","f_{0}(980) #rightarrow K^{+}K^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
-
+  TH1F *histoPtTracks = new TH1F("histoPtTracks", "ESD tracks - p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);
+  TH1F *histoYTracks = new TH1F("histoYTracks", "ESD tracks - rapidity; #it{y}; entries", 100, -2.0, 2.0);
+  TH1F *histoPhiTracks = new TH1F("histoPhiTracks", "ESD tracks - #it{#phi}; #it{#phi}; entries", 80, 0., 8.0);
+ 
   gStyle->SetOptStat(111111); //bin overflow	
   outKine<<"Table of PDG Codes"<<endl;
   
@@ -70,7 +74,11 @@ void CheckKine(TString fname = "galice.root",
       Int_t label = track->GetLabel();
       Float_t recPt = track->Pt();
 	
-      //fill here histos for pt, y and phi for all tracks
+      //Pt, Y and phi of all tracks
+
+      histoPtTracks->Fill(track->Pt());
+      histoYTracks->Fill(track->Y());
+      histoPhiTracks->Fill(track->Phi());
 	
       //look for the pions from f0 decay from kinematics
       // if (track->GetLabel() == pione nello stack) {
@@ -79,6 +87,19 @@ void CheckKine(TString fname = "galice.root",
     }   
   }
 
+  TCanvas * c3 = new TCanvas("c3","c3", 1200, 800);
+  c3->Divide(3,2);
+  c3->cd(1); histoPtTracks->Draw("hist"); 
+  c3->cd(2); histoYTracks->Draw("hist");
+  c3->cd(3); histoPhiTracks->Draw("hist");
+
+  c3->Print("checkKineOut3.pdf");
+  
+  fout2->cd();
+  histoPtTracks->Write();
+  histoYTracks->Write();
+  histoPhiTracks->Write();
+  fout->Close();	
 
   /* **************** */
   /* CHECK KINEMATICS */
