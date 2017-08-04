@@ -1,9 +1,10 @@
 void CheckKine(TString fname = "galice.root",
 	       Int_t motherPDG = 321, //321=kaon
 	       Int_t firstDaughterPDG = 13, //13=muon
-	       Int_t secondDaughterPDG = -1) 
+	       Int_t secondDaughterPDG = -1,
+	       Bool_t verbose = 0) 
 {
-  const Long_t f0PDG = 9010221;
+  const Long_t f0PDG =  113;// 9010221;
   const Int_t pionPDG = 211; //charged pion
   const Int_t kaonPDG = 321; //charged kaon
 
@@ -49,16 +50,69 @@ void CheckKine(TString fname = "galice.root",
 
   gStyle->SetOptStat(111111); //bin overflow	
   outKine<<"Table of PDG Codes"<<endl;
- 
+  
+  /* CHECK ESDs for daughters of a decayed f0 */
+  /* open esds */
+  TFile *fesd = TFile::Open(Form("AliESDs.root"));
+  if (!fesd || !fesd->IsOpen()) continue;
+  TTree *esdT = (TTree *)fesd->Get("esdTree");
+  
+  AliESDEvent *esd = new AliESDEvent();
+  esd->ReadFromTree(esdT);
+  for (Int_t iev = 0; iev < esdT->GetEntries(); iev++) {
+    esdT->GetEvent(iev);
+    if (verbose) Printf("########################### Event %i - Ntracks = %i", iev, esd->GetNumberOfTracks());
+
+    for (Int_t it = 0; it < esd->GetNumberOfTracks(); it++) {
+      /* get track */
+      AliESDtrack *track = (AliESDtrack*) esd->GetTrack(it);
+      if (!track) continue;
+      Int_t label = track->GetLabel();
+      Float_t recPt = track->Pt();
+	
+      //fill here histos for pt, y and phi for all tracks
+	
+      //look for the pions from f0 decay from kinematics
+      // if (track->GetLabel() == pione nello stack) {
+      // }
+      //fill here histos for pt, y and phi for the tracks of pions from f0
+    }   
+  }
+
+
+  /* **************** */
+  /* CHECK KINEMATICS */
+  /* **************** */
   /* loop over events */
   for (Int_t iev = 0; iev < rl->GetNumberOfEvents(); iev++) {
     outKine<<"Event #: "<<iev<<endl;
     outKine<<"PDG Code"<<"\t\t"<<"Particle label"<<"\t\t"<<"Mother PDG Code"<<"\t\t"<<"Mother label"<<"\t\t"<<"First Daughter"<<"\t\t"<<"Last daughter"<<endl;
     /* get event */
     rl->GetEvent(iev);
-
+    if (verbose) Printf("########################### Event %i", iev);
+    
     /* loop over particles */
     AliStack *stack = rl->Stack();
+
+    if (verbose) Printf("KINEMATICS: N tracks = %i   -- N primary = %i    -- N transported = %i",
+			stack->GetNtrack(), stack->GetNprimary(), stack->GetNtransported());
+
+    /* look at the stack searching for f0 among primary particles, then 
+       searching for the daughters and filling histograms */
+    for (Int_t ipart = 0; ipart < stack->GetNprimary(); ipart++) {
+      /* get particle */
+      TParticle *particle = stack->Particle(ipart);
+      if (!particle) continue;
+      if (particle->GetPdgCode() == f0PDG) {
+	if (verbose) {
+	  Printf("f0 found in stack entry %i ::::: Unique ID = %i - Status = %i", ipart, particle->GetUniqueID(), particle->GetStatusCode());
+	  //Add check on the daughters
+	  //...
+	}
+      }
+    }
+
+    /* look at the full stack for the daughters of an f0 and filling histograms */    
     for (Int_t ipart = 0; ipart < stack->GetNtrack(); ipart++) {
       
       /* get particle */
@@ -94,7 +148,7 @@ void CheckKine(TString fname = "galice.root",
       histoPDGCode->Fill(TMath::Abs(particle->GetPdgCode())); /* histogram of the PDG codes */
 
       /*selecting f0 with PDG code*/
-      if (mom->GetPdgCode()==f0PDG){		  
+      if (mom->GetPdgCode()==f0PDG) {		  
       
 	outKine<<particle->GetPdgCode()<<"\t\t\t"<<particle->GetName()<<"\t\t\t"<<mom->GetPdgCode()<<"\t\t\t"<<mom->GetName()<<"\t\t\t"<<firstDaug->GetPdgCode()<<"\t\t\t"<<lastDaug->GetPdgCode()<<endl;
 	
@@ -127,7 +181,7 @@ void CheckKine(TString fname = "galice.root",
 	if (TMath::Abs(f0firstDaug->GetPdgCode()) == pionPDG ||
 	    TMath::Abs(f0secondDaug->GetPdgCode()) == pionPDG) {
 	  histof0pipi->Fill(f0firstDaugPt, f0secondDaugPt);
-          OpeningAngle = pion1V.Angle(pion2V.Vect()); //Angle between products of decay
+	  OpeningAngle = pion1V.Angle(pion2V.Vect()); //Angle between products of decay
 	}	  
 	  
 	/* 2D histograms for pt of first and second daughter of the f0(980)—> KK   */
@@ -146,8 +200,7 @@ void CheckKine(TString fname = "galice.root",
 	/* pT, eta and phi of the generated mother vs daughters opening angle */
 	histoOpeningAngle->Fill(Pt2, OpeningAngle);
 	histoOpeningAngle2->Fill(mom->Y(), OpeningAngle);
-	histoOpeningAngle3->Fill(mom->Phi(), OpeningAngle);
-	
+	histoOpeningAngle3->Fill(mom->Phi(), OpeningAngle);	
 	
       } //end checks on f0 PDG 
 
@@ -157,8 +210,8 @@ void CheckKine(TString fname = "galice.root",
       Int_t motherL = particle->GetMother(0);
       if (motherL <= 0) continue;
       if (motherL >= stack->GetNtrack()) {
-        printf(">>> WEIRD: mother label is larger than stack size: %d \n", motherL);
-        continue;
+	printf(">>> WEIRD: mother label is larger than stack size: %d \n", motherL);
+	continue;
       }
       TParticle *mother = stack->Particle(motherL);
       if (!mother) continue;
