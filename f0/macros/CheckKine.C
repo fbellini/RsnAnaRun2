@@ -47,11 +47,16 @@ void CheckKine(TString fname = "galice.root",
   TH2F *histoOpeningAngle2 = new TH2F("histoOpeningAngle2","Daughters opening angle (#alpha); #it{y}_{gen}; #alpha (rad)", 200, -1., 1.0, 400, 0., 4.0);
   TH2F *histoOpeningAngle3 = new TH2F("histoOpeningAngle3","Daughters opening angle (#alpha); #it{#phi}_{gen}; #alpha (rad)", 700, 0., 7.0, 400, 0., 4.0);
   TH2F *histof0pipi = new TH2F("histof0pipi","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 1000, 0., 10., 1000, 0., 10.);
+  TH2F *histof0pipi2 = new TH2F("histof0pipiRec2","f_{0}(980) #rightarrow #pi^{+}#pi^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 1000, 0., 10., 1000, 0., 10.);
   TH2F *histof0kk = new TH2F("histof0kk","f_{0}(980) #rightarrow K^{+}K^{-}; p_{T, 1} (GeV/#it{c}); p_{T, 2} (GeV/#it{c})", 750, 0., 7.5, 750, 0., 7.5);
   TH1F *histoPtTracks = new TH1F("histoPtTracks", "ESD tracks - p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);
   TH1F *histoYTracks = new TH1F("histoYTracks", "ESD tracks - rapidity; #it{y}; entries", 100, -2.0, 2.0);
   TH1F *histoPhiTracks = new TH1F("histoPhiTracks", "ESD tracks - #it{#phi}; #it{#phi}; entries", 80, 0., 8.0);
+  TH1F *histoPtPions = new TH1F("histoPtPions", "Pions from f_{0} - p_{T}; p_{T, gen} (GeV/#it{c}); entries", 100, 0., 10.0);
+  TH1F *histoYPions = new TH1F("histoYPions", "Pions from f_{0} - rapidity; #it{y}; entries", 100, -2.0, 2.0);
+  TH1F *histoPhiPions = new TH1F("histoPhiPions", "Pions from f_{0} - #it{#phi}; #it{#phi}; entries", 80, 0., 8.0);
  
+	
   gStyle->SetOptStat(111111); //bin overflow	
   outKine<<"Table of PDG Codes"<<endl;
   
@@ -63,27 +68,64 @@ void CheckKine(TString fname = "galice.root",
   
   AliESDEvent *esd = new AliESDEvent();
   esd->ReadFromTree(esdT);
+  //Long_t labelPart[esd->GetNumberOfTracks()]; 
+  //Int_t countLabelRepetition=0;
   for (Int_t iev = 0; iev < esdT->GetEntries(); iev++) {
     esdT->GetEvent(iev);
     if (verbose) Printf("########################### Event %i - Ntracks = %i", iev, esd->GetNumberOfTracks());
 
+    AliStack* stack;
+    rl->GetEvent(iev);
+    stack = rl->Stack();
+	  
     for (Int_t it = 0; it < esd->GetNumberOfTracks(); it++) {
       /* get track */
       AliESDtrack *track = (AliESDtrack*) esd->GetTrack(it);
       if (!track) continue;
-      Int_t label = track->GetLabel();
-      Float_t recPt = track->Pt();
-	
+      Long_t label = track->GetLabel();
+      if (label < 1) continue;
+	    
       //Pt, Y and phi of all tracks
 
       histoPtTracks->Fill(track->Pt());
       histoYTracks->Fill(track->Y());
       histoPhiTracks->Fill(track->Phi());
 	
-      //look for the pions from f0 decay from kinematics
-      // if (track->GetLabel() == pione nello stack) {
-      // }
-      //fill here histos for pt, y and phi for the tracks of pions from f0
+      //look for the pions from f0 decay from kinematics	    
+      cout << "ciao" << endl;
+      TParticle *mcParticle = stack->Particle(label);
+      Int_t mcParticlePDG = mcParticle->GetPdgCode();
+      Int_t motherLabel = mcParticle->GetFirstMother();
+	  
+      if (TMath::Abs(mcParticlePDG) != pionPDG) continue;
+	  
+      TParticle *particleMom = stack->Particle(motherLabel);
+      if (!particleMom) continue;
+      Int_t *momPDG = particleMom->GetPdgCode();
+	  
+      if(momPDG == f0PDG){
+	 Printf("F0 daughter found in ESDs - label %i", label);
+	      
+/*
+      check if there are particles with the same label
+	  
+      labelPart[it] = label;
+      for(j=it+1, j<esd->GetNumberOfTracks(), j++){
+      if (labelPart[it]==labelPart[j]){
+      countLabelRepetition++;
+      cout << "There are" << countLabelRepetition << "particles with the same label!" << endl;
+      cout << "Event" << iev << "\t\t" << "with label" << j << endl;
+	  
+ }
+}
+	  
+*/         
+	      
+	 //fill here histos for pt, y and phi for the tracks of pions from f0
+	 histoPtPions->Fill(track->Pt());
+	 histoYPions->Fill(track->Y());
+	 histoPhiPions->Fill(track->Phi());
+	}    
     }   
   }
 
@@ -92,6 +134,9 @@ void CheckKine(TString fname = "galice.root",
   c3->cd(1); histoPtTracks->Draw("hist"); 
   c3->cd(2); histoYTracks->Draw("hist");
   c3->cd(3); histoPhiTracks->Draw("hist");
+  c3->cd(4); histoPtPions->Draw("hist");
+  c3->cd(5); histoYPions->Draw("hist");
+  c3->cd(6); histoPhiPions->Draw("hist");	
 
   c3->Print("checkKineOut3.pdf");
   
@@ -99,7 +144,10 @@ void CheckKine(TString fname = "galice.root",
   histoPtTracks->Write();
   histoYTracks->Write();
   histoPhiTracks->Write();
-  fout->Close();	
+  histoPtPions->Write();
+  histoYPions->Write();
+  histoPhiPions->Write();	
+ 	
 
   /* **************** */
   /* CHECK KINEMATICS */
@@ -211,6 +259,16 @@ void CheckKine(TString fname = "galice.root",
 	  histof0kk->Fill(f0firstDaugPt, f0secondDaugPt);
 	}
       	
+	Int_t sisterLabel=mom->GetFirstDaughter();
+	if (sisterLabel == label) sisterLabel=mom->GetLastDaughter();
+	if (sisterLabel < 1) continue;
+	TParticle *sister = stack->Particle(sisterLabel);
+	if(!sister) continue;
+	Int_t sisterPDG = sister->GetPdgCode();
+	if (TMath::Abs(sisterPDG) != pionPDG) continue;
+	histof0pipi2->Fill(track->Pt(), sister->Pt());   //why histof0pipi2 != histof0pipi?
+	      
+	      
 	/* Use the energy-momentum quadrivector to check the method TParticle::Pt() */
 	mom->Momentum(momV);
 	f0firstDaug->Momentum(pion1V);
@@ -256,7 +314,8 @@ void CheckKine(TString fname = "galice.root",
   c1->cd(3); histof0y->Draw("hist");
   c1->cd(4); histof0mother->Draw("hist");		
   c1->cd(5); histof0pipi->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
-  c1->cd(6); histof0kk->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
+  c1->cd(6); histof0pipi2->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
+  // c1->cd(6); histof0kk->Draw("colz");  gPad->SetLogy();  gPad->SetLogx();
 	
   TCanvas * c2 = new TCanvas("c2","c2", 1200, 800);
   c2->Divide(3,1);
@@ -275,11 +334,13 @@ void CheckKine(TString fname = "galice.root",
   histof0y->Write();
   histof0mother->Write();
   histof0pipi->Write();
+  histof0pipi2->Write();
   histoOpeningAngle->Write();
   histoOpeningAngle2->Write();
   histoOpeningAngle3->Write();
   histof0kk->Write();
   fout->Close();
+  fout2->Close();
 
  
   return;
