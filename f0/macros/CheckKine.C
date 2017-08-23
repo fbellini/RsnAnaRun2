@@ -68,6 +68,7 @@ void CheckKine(TString fname = "galice.root",
   
   AliESDEvent *esd = new AliESDEvent();
   esd->ReadFromTree(esdT);
+  //Bool_t checkLabel[esd->GetNumberOfTracks()];
   //Long_t labelPart[esd->GetNumberOfTracks()]; 
   //Int_t countLabelRepetition=0;
   for (Int_t iev = 0; iev < esdT->GetEntries(); iev++) {
@@ -108,24 +109,27 @@ void CheckKine(TString fname = "galice.root",
 	      
 /*
       check if there are particles with the same label
-	  
+      
       labelPart[it] = label;
-      for(j=it+1, j<esd->GetNumberOfTracks(), j++){
-      if (labelPart[it]==labelPart[j]){
+      for(j=it+1, j<(esd->GetNumberOfTracks()), j++){
+      	if (labelPart[it]==labelPart[j]){
+	  checkLabel[it] = 0;
+	 }
+	 
       countLabelRepetition++;
       cout << "There are" << countLabelRepetition << "particles with the same label!" << endl;
       cout << "Event" << iev << "\t\t" << "with label" << j << endl;
 	  
  }
 }
-	  
-*/         
-	      
-	 //fill here histos for pt, y and phi for the tracks of pions from f0
+*/	  
+	 
+	 //fill here histos for pt, y and phi for the tracks of pions from f0 after checking the labels of the particles
+	 //if (checkLabel[it]==1){   
 	 histoPtPions->Fill(track->Pt());
 	 histoYPions->Fill(track->Y());
 	 histoPhiPions->Fill(track->Phi());
-	}    
+	 //}    
     }   
   }
 
