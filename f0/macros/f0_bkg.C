@@ -46,19 +46,19 @@ void f0_bkg (){
   TH1 * hLSB4  = hProjYUnlikePM4->RebinX(5,"hLSB4");
   
   TH1 * hLSB1b = hLSB1->Clone("hLSB1b");
-  hLSB1b->SetTitle("Comparison of PID strategies - 0.5 < p_{T} < 1 (GeV/#it{c})");
+  hLSB1b->SetTitle("Estimated background - 0.5 < p_{T} < 1 (GeV/#it{c})");
   hLSB1b->GetXaxis()->SetTitle("M_{inv}(GeV/#it{c^{2}})");
   hLSB1b->GetYaxis()->SetTitle("pairs");
   TH1 * hLSB2b = hLSB2->Clone("hLSB2b");
-  hLSB2b->SetTitle("Comparison of PID strategies - 1.5 < p_{T} < 2 (GeV/#it{c})");
+  hLSB2b->SetTitle("Estimated background - 1.5 < p_{T} < 2 (GeV/#it{c})");
   hLSB2b->GetXaxis()->SetTitle("M_{inv}(GeV/#it{c^{2}})");
   hLSB2b->GetYaxis()->SetTitle("pairs");
   TH1 * hLSB3b = hLSB3->Clone("hLSB3b");
-  hLSB3b->SetTitle("Comparison of PID strategies - 2 < p_{T} < 3.5 (GeV/#it{c})");
+  hLSB3b->SetTitle("Estimated background - 2 < p_{T} < 3.5 (GeV/#it{c})");
   hLSB3b->GetXaxis()->SetTitle("M_{inv}(GeV/#it{c^{2}})");
   hLSB3b->GetYaxis()->SetTitle("pairs");
   TH1 * hLSB4b = hLSB4->Clone("hLSB4b");
-  hLSB4b->SetTitle("Comparison of PID strategies - 3.5 < p_{T} < 4 (GeV/#it{c})");
+  hLSB4b->SetTitle("Estimated background - 3.5 < p_{T} < 4 (GeV/#it{c})");
   hLSB4b->GetXaxis()->SetTitle("M_{inv}(GeV/#it{c^{2}})");
   hLSB4b->GetYaxis()->SetTitle("pairs");
   
