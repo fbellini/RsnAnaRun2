@@ -5,69 +5,63 @@
 #include "TLegend.h"
 
 TH1D * geoMean(TH1D *h1, TH1D *h2){
-  Double_t cont1=0, cont2=0;
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hGeoMean");
+  TH1D * hGeoMean = (TH1D*) h1->Clone();
+  Double_t cont1=0, cont2=0, product=0, geoMean=0, product2=0;
   hGeoMean->Reset("ICES");
-  for(Int_t j=0; j<600; j++){
+  Double_t nBinRange=h1->GetXaxis()->FindBin(1.2) - h1->GetXaxis()->FindBin(0.6); // 0.6 < M_inv < 1.2 GeV/c2
+  for(Int_t j=0; j<nBinRange; j++){
     cont1 = h1->GetBinContent(j);
     cont2 = h2->GetBinContent(j);
-    Double_t geoMean = 2*(pow((cont1*cont2), 1./2));
-    hResult->SetBinContent(j, geoMean);
-   }
-  return hResult;
+    product = cont1*cont2;
+    geoMean = pow(product, 1./2);
+    product2 = 2*geoMean;
+    hGeoMean->SetBinContent(j, product2);
+    }
+  return hGeoMean;
 }
 
 TH1D * sum(TH1D *h1, TH1D *h2){
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hSum");
-  hSum->Reset("ICES");
-  h1->Add(h2);
-  hResult = (TH1D*) h1->Clone();
+  TH1D * hResult = (TH1D*) h1->Clone();
+  hResult->Add(h2);
   return hResult;
 }
 
 TH1D * division(TH1D *h1, TH1D *h2){
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hDivision");
-  hDivision->Reset("ICES");
-  h1->Divide(h2);
-  hResult = (TH1D*) h1->Clone();
+  TH1D * hResult = (TH1D*) h1->Clone();
+  hResult->Divide(h2);
   return hResult;
 }
 
 TH1D * normMEB(TH1D *h1){
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hNormMEB");
-  hNormMEB->Reset("ICES");
-  h1->Scale(1./5.);
-  h1->Sumw2();
-  hResult = (TH1D*) h1->Clone();
+  TH1D * hResult = (TH1D*) h1->Clone();
+  hResult->Scale(1./5.);
   return hResult;
 }
 
 TH1D * normMEB2(TH1D *h1, TH1D *h2){
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hNormMEB2");
-  hNormMEB2->Reset("ICES");
-  Int_t iMinBin = h1->GetXaxis()->FindBin(1.15);
-  Int_t iMaxBin = h1->GetXaxis()->FindBin(1.20);
-  Int_t iMinBin2 = h2->GetXaxis()->FindBin(1.15);
-  Int_t iMaxBin2 = h2->GetXaxis()->FindBin(1.20);
-  Double_t area1 = h1->Integral(iMinBin, iMaxBin, "");
-  Double_t area2 = h2->Integral(iMinBin2, iMaxBin2, "");
-  Double_t yScale = area1/area2;
-  h1->Scale(1./yScale);
-  hResult = (TH1D*) h1->Clone();
+  TH1D * hResult = (TH1D*) h1->Clone();
+  TH1D * h3 = (TH1D*) h1->Clone();
+  TH1D * h4 = (TH1D*) h2->Clone();
+  Int_t iMinBin = h3->GetXaxis()->FindBin(1.15);
+  Int_t iMaxBin = h3->GetXaxis()->FindBin(1.20);
+  Int_t iMinBin2 = h4->GetXaxis()->FindBin(1.15);
+  Int_t iMaxBin2 = h4->GetXaxis()->FindBin(1.20);
+  Double_t area1 = h3->Integral(iMinBin, iMaxBin);
+  Double_t area2 = h4->Integral(iMinBin2, iMaxBin2);
+  Double_t yScale = area2/area1;
+  hResult->Scale(yScale);
   return hResult;
 }
 
 TH1D * subtraction(TH1D *h1, TH1D *h2){
   if(!h1) return;
-  TH1D * hResult = (TH1D*) h1->Clone("hBgSub");
-  hBgSub->Reset("ICES");
-  h1->Add(h2, -1);
-  hResult = (TH1D*) h1->Clone();
+  TH1D * hResult = (TH1D*) h1->Clone();
+  hResult->Add(h2, -1);
   return hResult;
 }
 
@@ -79,7 +73,7 @@ void f0_bkg (){
   SetStyle();
   TGaxis::SetMaxDigits(3);
 
-  Int_t rebinVar=5.; //rebinning factor
+  Int_t rebinVar=5; //rebinning factor
   
   /* getting histos from root file */
   TFile * file = TFile::Open("RsnTask_f0.root");
@@ -102,8 +96,8 @@ void f0_bkg (){
   TH1D * hLikePPpy[18]; TH1D * hLikeMMpy[18]; TH1D * hMEBpy[18]; TH1D * hUSPpy[18]; TH1D * hLSBRatio[18];
   TH1D * hGeoMean[18]; TH1D * hSum[18]; TH1D * hNormMEB[18]; TH1D * hNormMEB2[18];
   TH1D * hUSPminusLSB1[18]; TH1D * hUSPminusLSB2[18]; TH1D * hUSPminusMEB1[18]; TH1D * hUSPminusMEB2[18];
-  
-  for(i=0; i<17; i++){
+
+  for(Int_t i=0; i<17; i++){
   hLikePPpy[i]=0x0; hLikeMMpy[i]=0x0; hMEBpy[i]=0x0; hUSPpy[i]=0x0; hLSBRatio[i]=0x0;
   hGeoMean[i]=0x0; hSum[i]=0x0; hNormMEB[i]=0x0; hNormMEB2[i]=0x0;
   hUSPminusLSB1[i]=0x0; hUSPminusLSB2[i]=0x0; hUSPminusMEB1[i]=0x0; hUSPminusMEB2[i]=0x0;
@@ -148,19 +142,23 @@ void f0_bkg (){
   Int_t iMaxBinPt = hUSP->GetXaxis()->FindBin(pT[ibin+1]);
   //printf("min: %d - max:%d; pT min: %5.2f - pT max: %05.2f\n", iMinBinPt, iMaxBinPt, pT[ibin], pT[ibin+1]);
 
-    /*  projecting histos in 1d to get invariant mass spectra */
+  /*  projecting histos in 1d to get invariant mass spectra */
   hLikePPpy[ibin] = (TH1D*) hLikePP->ProjectionY(Form("hLikePP_pT_%2.1f-%2.1f", pT[ibin], pT[ibin+1]), iMinBinPt, iMaxBinPt);
   hLikePPpy[ibin]->SetTitle(Form("LSB (++) - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
-
+  hLikePPpy[ibin]->RebinX(rebinVar);
+    
   hLikeMMpy[ibin] = (TH1D*) hLikeMM->ProjectionY(Form("hLikeMM_pT_%2.1f-%2.1f", pT[ibin], pT[ibin+1]), iMinBinPt, iMaxBinPt);
   hLikeMMpy[ibin]->SetTitle(Form("LSB (--) - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
-
+  hLikeMMpy[ibin]->RebinX(rebinVar);
+    
   hMEBpy[ibin] = (TH1D*) hMEB->ProjectionY(Form("hMEB_pT_%2.1f-%2.1f", pT[ibin], pT[ibin+1]), iMinBinPt, iMaxBinPt);
   hMEBpy[ibin]->SetTitle(Form("MEB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
-
+  hMEBpy[ibin]->RebinX(rebinVar);
+    
   hUSPpy[ibin] = (TH1D*) hUSP->ProjectionY(Form("hUSP_pT_%2.1f-%2.1f", pT[ibin], pT[ibin+1]), iMinBinPt, iMaxBinPt);
   hUSPpy[ibin]->SetTitle(Form("USP - LSB %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
-
+  hUSPpy[ibin]->RebinX(rebinVar);
+    
   /* Bg estimation */
   hGeoMean[ibin]=geoMean(hLikePPpy[ibin], hLikeMMpy[ibin]);   //LSB calculated with geometric mean
   hGeoMean[ibin]->SetTitle(Form("LSB calculated with geometric mean - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
@@ -205,17 +203,17 @@ void f0_bkg (){
   hNormMEB[ibin]->Draw("hist same");
   hUSPpy[ibin]->Draw("hist same");
   TLegend *legend1 = new TLegend(0.75,0.75,0.9,0.9);
-  legend1->AddEntry(hNormMEB[ibin]," MEB", "lpf");
-  legend1->AddEntry(hGeoMean[ibin]," LSB","lpf");
-  legend1->AddEntry(hUSPpy[ibin]," USP","lpf");
+  legend1->AddEntry(hNormMEB[ibin],"MEB", "lpf");
+  legend1->AddEntry(hGeoMean[ibin],"LSB","lpf");
+  legend1->AddEntry(hUSPpy[ibin],"USP","lpf");
   legend1->Draw();
 
   c3->cd(ibin+1);
-  hUSPminusLSB2[ibin]->Draw("hist");
-  hUSPminusMEB1[ibin]->Draw("hist same");
+  hUSPminusLSB1[ibin]->Draw("hist");
+  hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend3 = new TLegend(0.75,0.75,0.9,0.9);
-  legend3->AddEntry(hUSPminusLSB2[ibin]," USP-LSB", "lpf");
-  legend3->AddEntry(hUSPminusMEB1[ibin]," USP-MEB","lpf");
+  legend3->AddEntry(hUSPminusLSB2[ibin],"LSB", "lpf");
+  legend3->AddEntry(hUSPminusMEB1[ibin],"MEB","lpf");
   legend3->Draw();
 
   c5->cd(ibin+1);
@@ -225,18 +223,17 @@ void f0_bkg (){
   hUSPminusLSB1[ibin]->Draw("hist");
   hUSPminusLSB2[ibin]->Draw("hist same");
   TLegend *legend7 = new TLegend(0.75,0.75,0.9,0.9);
-  legend7->AddEntry(hUSPminusLSB1[ibin]," USP-LSB (sum)", "lpf");
-  legend7->AddEntry(hUSPminusLSB2[ibin]," USP-LSB (geoMean)","lpf");
+  legend7->AddEntry(hUSPminusLSB1[ibin],"LSB 1", "lpf");
+  legend7->AddEntry(hUSPminusLSB2[ibin],"LSB 2","lpf");
   legend7->Draw();
 
   c9->cd(ibin+1);
   hUSPminusMEB1[ibin]->Draw("hist");
   hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend8 = new TLegend(0.75,0.75,0.9,0.9);
-  legend8->AddEntry(hUSPminusMEB1[ibin]," USP-MEB (scale 1/5)", "lpf");
-  legend8->AddEntry(hUSPminusMEB2[ibin]," USP-MEB (norm USP)","lpf");
+  legend8->AddEntry(hUSPminusMEB1[ibin],"MEB 1", "lpf");
+  legend8->AddEntry(hUSPminusMEB2[ibin],"MEB 2","lpf");
   legend8->Draw();
-
   }
   else{
   c2->cd(ibin-9);
@@ -244,17 +241,17 @@ void f0_bkg (){
   hNormMEB[ibin]->Draw("hist same");
   hUSPpy[ibin]->Draw("hist same");
   TLegend *legend2 = new TLegend(0.75,0.75,0.9,0.9);
-  legend2->AddEntry(hNormMEB[ibin]," MEB", "lpf");
-  legend2->AddEntry(hGeoMean[ibin]," LSB","lpf");
-  legend2->AddEntry(hUSPpy[ibin]," USP","lpf");
+  legend2->AddEntry(hNormMEB[ibin],"MEB", "lpf");
+  legend2->AddEntry(hGeoMean[ibin],"LSB","lpf");
+  legend2->AddEntry(hUSPpy[ibin],"USP","lpf");
   legend2->Draw();
 
   c4->cd(ibin-9);
-  hUSPminusLSB2[ibin]->Draw("hist");
-  hUSPminusMEB1[ibin]->Draw("hist same");
+  hUSPminusLSB1[ibin]->Draw("hist");
+  hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend4 = new TLegend(0.75,0.75,0.9,0.9);
-  legend4->AddEntry(hUSPminusLSB2[ibin]," USP-LSB", "lpf");
-  legend4->AddEntry(hUSPminusMEB1[ibin]," USP-MEB","lpf");
+  legend4->AddEntry(hUSPminusLSB2[ibin],"LSB", "lpf");
+  legend4->AddEntry(hUSPminusMEB1[ibin],"MEB","lpf");
   legend4->Draw();
 
   c6->cd(ibin-9);
@@ -264,16 +261,16 @@ void f0_bkg (){
   hUSPminusLSB1[ibin]->Draw("hist");
   hUSPminusLSB2[ibin]->Draw("hist same");
   TLegend *legend8 = new TLegend(0.75,0.75,0.9,0.9);
-  legend8->AddEntry(hUSPminusLSB1[ibin]," USP-LSB (sum)", "lpf");
-  legend8->AddEntry(hUSPminusLSB2[ibin]," USP-LSB (geoMean)","lpf");
+  legend8->AddEntry(hUSPminusLSB1[ibin],"LSB 1", "lpf");
+  legend8->AddEntry(hUSPminusLSB2[ibin],"LSB 2","lpf");
   legend8->Draw();
 
   c10->cd(ibin-9);
   hUSPminusMEB1[ibin]->Draw("hist");
   hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend10 = new TLegend(0.75,0.75,0.9,0.9);
-  legend10->AddEntry(hUSPminusMEB1[ibin]," USP-MEB (scale 1/5)", "lpf");
-  legend10->AddEntry(hUSPminusMEB2[ibin]," USP-MEB (norm USP)","lpf");
+  legend10->AddEntry(hUSPminusMEB1[ibin],"MEB 1", "lpf");
+  legend10->AddEntry(hUSPminusMEB2[ibin],"MEB 2","lpf");
   legend10->Draw();
 }
   c1->Print("EstimatedBg1.pdf");
