@@ -212,8 +212,8 @@ void f0_bkg (){
   hUSPminusLSB1[ibin]->Draw("hist");
   hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend3 = new TLegend(0.75,0.75,0.9,0.9);
-  legend3->AddEntry(hUSPminusLSB2[ibin],"LSB", "lpf");
-  legend3->AddEntry(hUSPminusMEB1[ibin],"MEB","lpf");
+  legend3->AddEntry(hUSPminusLSB1[ibin],"LSB", "lpf");
+  legend3->AddEntry(hUSPminusMEB2[ibin],"MEB","lpf");
   legend3->Draw();
 
   c5->cd(ibin+1);
@@ -250,8 +250,8 @@ void f0_bkg (){
   hUSPminusLSB1[ibin]->Draw("hist");
   hUSPminusMEB2[ibin]->Draw("hist same");
   TLegend *legend4 = new TLegend(0.75,0.75,0.9,0.9);
-  legend4->AddEntry(hUSPminusLSB2[ibin],"LSB", "lpf");
-  legend4->AddEntry(hUSPminusMEB1[ibin],"MEB","lpf");
+  legend4->AddEntry(hUSPminusLSB1[ibin],"LSB", "lpf");
+  legend4->AddEntry(hUSPminusMEB2[ibin],"MEB","lpf");
   legend4->Draw();
 
   c6->cd(ibin-9);
