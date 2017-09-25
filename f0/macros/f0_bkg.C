@@ -162,15 +162,17 @@ void f0_bkg(Double_t chosenPt = 1.0, //GeV/c --> chosen pT for plotting; if chos
   /* drawing and printing output */
   canvas[ibin]= new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]), 1600, 800);
   canvas[ibin]->Divide(3,2);
-  canvas[ibin]->cd(1); hGeoMean[ibin]->Draw("hist");
-  canvas[ibin]->cd(1); hnMEB2[ibin]->Draw("hist same");
-  canvas[ibin]->cd(1); hnMEL2[ibin]->Draw("hist same");
-  canvas[ibin]->cd(1); hUSPpy[ibin]->Draw("hist same");
-  canvas[ibin]->cd(1); legend1->Draw();
-  canvas[ibin]->cd(2); hUSPminusLSB2[ibin]->Draw("hist");
-  canvas[ibin]->cd(2); hUSPminusMEB2[ibin]->Draw("hist same");
-  canvas[ibin]->cd(2); hUSPminusMEL2[ibin]->Draw("hist same");
-  canvas[ibin]->cd(2); legend2->Draw();
+  canvas[ibin]->cd(1); 
+  hGeoMean[ibin]->Draw("hist");
+  hnMEB2[ibin]->Draw("hist same");
+  hnMEL2[ibin]->Draw("hist same");
+  hUSPpy[ibin]->Draw("hist same");
+  legend1->Draw();
+  canvas[ibin]->cd(2); 
+  hUSPminusLSB2[ibin]->Draw("hist");
+  hUSPminusMEB2[ibin]->Draw("hist same");
+  hUSPminusMEL2[ibin]->Draw("hist same");
+  legend2->Draw();
   canvas[ibin]->cd(3); hLSBRatio[ibin]->Draw("hist");
   canvas[ibin]->cd(4); hMELRatio[ibin]->Draw("hist");
   canvas[ibin]->cd(5); hMELMEBRatio[ibin]->Draw("hist");
