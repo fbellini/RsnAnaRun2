@@ -37,7 +37,7 @@ void fit()
   RooRealVar widthRho( "widthRho", "widthRho", 0.149);
   RooRelBW sigRho("sigRho","sigRho", x, mRho, widthRho);
 
-  RooRealVar mF0("mF0","mF0",0.97, 1.01); //f0(980) invariant mass = 990 /pm 20 MeV
+  RooRealVar mF0("mF0","mF0",0.99, 0.97, 1.01); //f0(980) invariant mass = 990 /pm 20 MeV
   RooRealVar widthF0("widthF0", "widthF0",0.05);
   RooRelBW sigF0("sigF0","sigF0", x, mF0, widthF0);
 
