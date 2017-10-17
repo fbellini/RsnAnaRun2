@@ -73,7 +73,7 @@ TString myExecutableName = "RunRsnAnalysis";
 TString myMacroName = "RunRsnAnalysis";
 
 /* the macros are normally in the Rsn Package */
-TString loadMacroPath = "${ALICE_PHYSICS}/PWGLF/RESONANCES/macros/mini";
+TString loadMacroPath = "~/alice/resonances/RsnAnaRun2/f0/macros/runGrid"; //no trailing slash at the end
 
 /* Set the usage of the alien plugin to kTRUE to run the analysis on grid or in test mode,
    set it to kFALSE to run test locally */
@@ -166,15 +166,19 @@ void RunGridRsnTrain(TString pluginmode="test",
     - creates analysis manager and input handler
   ****************************************************************/
   //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/steer/AnalysisSetup.C");
-  gROOT->LoadMacro("./AnalysisSetup.C");
+  gROOT->LoadMacro(Form("%s/AnalysisSetup.C",loadMacroPath.Data()));
   TString options;
   if (isMC) options="MC"; else options="DATA";
   if (isPP) options.Append("_PP"); else options.Append("_PBPB");
   if (isESD) options.Append("_ESD");
   if (useTender) options.Append("_TENDER");
   
-  TString out = "";
-  out = AnalysisSetup(nmix, options, Form("RsnTask%s.root",suffix.Data()), loadMacroPath, ppass, kTRUE, runMonOnly, isMC, "NoSIGN");
+  TString out = AnalysisSetup(options,
+			      Form("RsnTask%s.root",suffix.Data()),
+			      ppass,
+			      kFALSE,    /*mult sel*/
+			      kTRUE);     /*QA*/
+  
   if (out.Length() < 1) return;
   
   // add plugin to analysis manager

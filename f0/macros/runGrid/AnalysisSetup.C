@@ -1,14 +1,10 @@
 //fbellini
 
-TString AnalysisSetup(Int_t       nmix,
-		      const char *options,
+TString AnalysisSetup(const char *options,
 		      const char *outputFileName,
-		      const char *macroPath,
-		      Int_t      ppass = 3,
-		      Bool_t     enableMon=kTRUE,
-		      Bool_t     runMonOnly=kFALSE,
-		      Bool_t     isMcTrueOnly=kFALSE,
-		      TString    monitorOpt = "NoSIGN")
+		      Int_t      ppass        = 3,        //reco pass needed for PIDresponse tune
+		      Bool_t     enaMultSel   = kTRUE,    //enable multiplicity axis
+		      Bool_t     enableMon    = kTRUE)    //enable single-track cuts monitoring
 {
    // prepare output
    TString out("");
@@ -65,7 +61,6 @@ TString AnalysisSetup(Int_t       nmix,
 
    AliAnalysisManager *mgr = new AliAnalysisManager("RsnAnalysisManager");
    mgr->SetCommonFileName(outputFileName);
-   ::Info("AnalysisSetup", "Common file name: %s", outputFileName);
 
    //
    // === INPUT / OUTPUT HANDLER CONFIGURATION =====================================================
@@ -100,7 +95,6 @@ TString AnalysisSetup(Int_t       nmix,
    //
    // === PHYSICS SELECTION =============================================================
    // Check that the correct trigger class is selected!!! USER DEFINED!!!
-   ::Info("AnalysisSetup", "Add physics selection");
    gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
    AliPhysicsSelectionTask* physSelTask = AddTaskPhysicsSelection(isMC);
    physSelTask->SelectCollisionCandidates(AliVEvent::kINT7); 
@@ -108,45 +102,59 @@ TString AnalysisSetup(Int_t       nmix,
    //add also info on physics selection statistics in separate file
    AliAnalysisDataContainer *cstatsout = (AliAnalysisDataContainer*)mgr->GetOutputs()->FindObject("cstatsout");
    cstatsout->SetFileName("EventStatPhysSel.root");
-
    
    //
    // === CENTRALITY/MULTIPLICITY ==============================================================
    //
-   // ::Info("AnalysisSetup", "Add centrality/multiplicity computation tasks");
    gROOT->LoadMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C");
-   AliMultSelectionTask* taskMult = (AliMultSelectionTask *) AddTaskMultSelection(); //kTRUE, "B") to run in calibration mode
-   taskMult->SetUseDefaultMCCalib(isMC);
+   AliMultSelectionTask* taskMult = 0X0;
+   if (enaMultSel) {
+     taskMult = (AliMultSelectionTask *) AddTaskMultSelection(); //kTRUE, "B") to run in calibration mode
+     taskMult->SetUseDefaultMCCalib(isMC);
+   }
+
    //
    // === PID RESPONSE =============================================================================
    //   
-   ::Info("AnalysisSetup", "Add task for PID response");
    gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
-   AddTaskPIDResponse(isMC, //1 = MC
-   		      isMC, //autoMCesd
-   		      isMC, //tuneOnData
-   		      ppass, //recopass
-                      kFALSE, //cachePID, default
-   		      "",//detResponse, default
-                      kTRUE,//useTPCEtaCorrection,/*Please use default value! Otherwise splines can be off*/
-                      kFALSE, //useTPCMultiplicityCorrection --> default was kTRUE, but not avail for LHC13b2_efix_p1 
-   		      -1); //recodatapass, default=-1
+   AliAnalysisTask * pidRespTask = AddTaskPIDResponse(isMC,   //1 = MC
+						      isMC,   //autoMCesd
+						      isMC,   //tuneOnData
+						      ppass,  //recopass
+						      kFALSE, //cachePID, default
+						      "",     //detResponse, default
+						      kTRUE,  //useTPCEtaCorrection,/*Please use default value! Otherwise splines can be off*/
+						      kFALSE, //useTPCMultiplicityCorrection --> default was kTRUE, but not avail for LHC13b2_efix_p1 
+						      ppass); //recodatapass, default=-1
    
    //
    // === PID QA ===================================================================================
    //   
-   // gROOT->LoadMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C ");
-   // AddTaskPIDqa();
+   gROOT->LoadMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C ");
+   AliAnalysisTask* pidQAtask = 0x0;
+   if (enableMon) AddTaskPIDqa();
    
    //
    // === RSN TASKS ==============================================================================
    //
-   // gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/qa/AddTaskRsnQA.C ");
-   // AddTaskRsnQA(isMC, kFALSE, "V0M", AliVEvent::kINT7, "phi");
-
+   gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/qa/AddTaskRsnQA.C ");
+   AliRsnMiniAnalysisTask * rsnQaTask = AddTaskRsnQA(isMC, kFALSE, "V0M", AliVEvent::kINT7, "phi");
+   
    gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddTaskF0.C");
-   AddTaskF0("f0", AliPIDResponse::kPP, isMC, AliVEvent::kINT7, kTRUE, 0, 0, 5, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 0.3, 1.3, 1000, kFALSE);
+   AliRsnMiniAnalysisTask * rsnAnaTask = AddTaskF0("f0", isMC, AliPIDResponse::kPP,
+						   AliVEvent::kINT7, enaMultSel, 0, 0, 5,
+						   AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 3.0,
+						   0.3, 1.3, 1000, enableMon);
 
+   ::Info("<<<<<<<<<<<<<<<<< TRAIN CONFIGURATION >>>>>>>>>>>>>>>>");
+   ::Info("AnalysisSetup", "Common file name: %s", outputFileName);
+   if (physSelTask) ::Info("AnalysisSetup", "Added physics selection");
+   if (cstatsout)   ::Info("AnalysisSetup", "Saving Physics Selection output in file EventStatPhysSel.root");
+   if (taskMult)    ::Info("AnalysisSetup", "Add centrality/multiplicity computation tasks");
+   if (pidRespTask) ::Info("AnalysisSetup", "Added task for PID response");
+   if (pidQAtask)   ::Info("AnalysisSetup", "Added task for PID QA");
+   if (rsnQaTask)   ::Info("AnalysisSetup", "Added task for Rsn QA"); 
+   if (rsnAnaTask)  ::Info("AnalysisSetup", "Added task for Rsn Analysis");
    ::Info("AnalysisSetup", "Setup successful");
    return out;
 }
