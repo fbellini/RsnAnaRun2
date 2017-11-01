@@ -1,6 +1,18 @@
-/////////////////////////////////////////////
-//       bg subtraction - 29.08.2017       //
-/////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//bg subtraction - 29.08.2017      								 //
+//												 //
+//before using the macro, you need HistoMakeUp.C and SetStyle.C in the same directory. you also	 //	
+//need the following lines in a rootlogon.C						         //
+//{												 //
+//gROOT->LoadMacro("HistoMakeUp.C+g");								 //
+//gROOT->LoadMacro("SetStyle.C+g");								 //
+//SetStyle();											 //
+//gROOT->LoadMacro("f0_bkg_nuovo.C+g");								 //
+//}												 //
+//												 //	
+//AnalysisResults.root --> data									 //
+//AnalysisResultsMC.root --> MC									 //
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "TLegend.h"
 #include "HistoMakeUp.C"
@@ -16,32 +28,30 @@ TH1D* subtraction(TH1D* h1, TH1D* h2);
 TH1D* division(TH1D* h1, TH1D* h2);
 TH1D* sum(TH1D* h1, TH1D* h2);
 TH1D* geoMean(TH1D* h1, TH1D* h2);
-TH1D* normMEB(TH1D* h1, TH1D* h2, Int_t method /*chosen method for normalizing MEB*/);
+TH1D* normMEB(TH1D* h1, TH1D* h2, Int_t method);
 
-
-void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
-            Double_t chosenPt = 1 /*chosen pT for plotting, if chosenPt = -1 plot all pTs
+void f0_bkg(Int_t rebinVar = 5 /*rebinning factor*/,
+            Double_t chosenPt = 4 /*chosen pT allows to chose the pT bin, if chosenPt = -1 you cover all pT bins
             list of matches
             0.5 < pT < 1.0 -> chosenPt=0; 1.0 < pT < 1.5 -> chosenPt=1; 1.5 < pT < 2.0 -> chosenPt=2; 
 	    2.0 < pT < 2.5 -> chosenPt=3; 2.5 < pT < 3.0 -> chosenPt=4; 3.0 < pT < 4.0 -> chosenPt=5; 
 	    4.0 < pT < 5.0 -> chosenPt=6; 5.0 < pT < 7.0 -> chosenPt=7; 7.0 < pT < 9.0 -> chosenPt=8; 
 	    9.0 < pT < 11.0 -> chosenPt=9 */,
-            Bool_t mc = kFALSE
+            Bool_t isMC = kFALSE //=1 when MC
 )
 {
-  SetStyle();
   TGaxis::SetMaxDigits(3);
 
   /* getting histos from root file */
-  TFile* file = TFile::Open(Form("AnalysisResults%s.root", mc ? "MC" : ""));
+  TFile * file = TFile::Open(Form("AnalysisResults%s.root", isMC ? "MC" : ""));
   TList * list = (TList*)file->Get("RsnOut_f0");
   //list->ls();
-  TH3F * hOrUnlikePM = (TH3F*)list->FindObject("RsnTaskF0_f0_UnlikePM"); //same event unlike sign pairs
-  TH3F * hOrLikePP = (TH3F*)list->FindObject("RsnTaskF0_f0_LikePP");     //like sign pairs: (pi+)+(pi+)
-  TH3F * hOrLikeMM = (TH3F*)list->FindObject("RsnTaskF0_f0_LikeMM");     //like sign pairs: (pi-)+(pi-)
-  TH3F * hOrMixingPP = (TH3F*)list->FindObject("RsnTaskF0_f0_MixingPP"); //(pi+)+(pi+) from 5 similar events
-  TH3F * hOrMixingMM = (TH3F*)list->FindObject("RsnTaskF0_f0_MixingMM"); //(pi-)+(pi-) from 5 similar events
-  TH3F * hOrMixingPM = (TH3F*)list->FindObject("RsnTaskF0_f0_MixingPM"); //(pi+)+(pi-) from 5 similar events
+  TH2F* hUSP = (TH2F*)list->FindObject("RsnTaskF0_f0_UnlikePM"); //same event unlike sign pairs
+  TH2F* hLikePP = (TH2F*)list->FindObject("RsnTaskF0_f0_LikePP"); //like sign pairs: (pi+)+(pi+)
+  TH2F* hLikeMM = (TH2F*)list->FindObject("RsnTaskF0_f0_LikeMM"); //like sign pairs: (pi-)+(pi-)
+  TH2F* hMELPP = (TH2F*)list->FindObject("RsnTaskF0_f0_MixingPP"); //(pi+)+(pi+) from 5 similar events
+  TH2F* hMELMM = (TH2F*)list->FindObject("RsnTaskF0_f0_MixingMM"); //(pi-)+(pi-) from 5 similar events
+  TH2F* hMEB = (TH2F*)list->FindObject("RsnTaskF0_f0_MixingPM"); //(pi+)+(pi-) from 5 similar events
 
   /* projecting histos in 2d (losing information on multiplicity) 
   TH2D * hUSP = hOrUnlikePM->Project3D("xy");
@@ -75,7 +85,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
   TH1D* hLSBnMELRatio[11];
   TH1D* hLSBnMEBRatio[11];
 
-  for(Int_t i=0; i<17; i++){
+  for(Int_t i=0; i<10; i++){
     hLikePPpy[i] = 0x0;
     hLikeMMpy[i] = 0x0;
     hMEBpy[i] = 0x0;
@@ -104,7 +114,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
   TCanvas *canvas[10];
 
   /*  bg subtraction for each bin in pT*/
-  for(Int_t ibin=0; ibin<17; ibin++){
+  for(Int_t ibin=0; ibin<10; ibin++){
     if (chosenPt >= 0 && chosenPt != ibin)
       continue;
   Int_t iMinBinPt = hUSP->GetXaxis()->FindBin(pT[ibin]);
@@ -148,7 +158,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
   hLSBRatio[ibin]->SetTitle(Form("Like Sign Ratios - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
   //hLSBRatio[ibin]->GetYaxis()->SetRangeUser(0.8,1.2);
 
-  hnMEB[ibin]=normMEB(hMEBpy[ibin], hUSPpy[ibin], 2);                          // MEB (normalized with a specific value)
+  hnMEB[ibin]=normMEB(hMEBpy[ibin], hUSPpy[ibin], 2);         // MEB (normalized with a specific value)
   hnMEB[ibin]->SetTitle(Form("nMEB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
 
   hMELRatio[ibin]=division(hMELMMpy[ibin], hMELPPpy[ibin]);   // MEL -- / MEL ++
@@ -157,7 +167,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
   hMEL[ibin]=geoMean(hMELPPpy[ibin],hMELMMpy[ibin]);          // MEL calculated with geometric mean
   hMEL[ibin]->SetTitle(Form("MEL geoMean - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
 
-  hnMEL[ibin]=normMEB(hMEL[ibin], hUSPpy[ibin], 2);                           // MEL (normalized with a specific value)
+  hnMEL[ibin]=normMEB(hMEL[ibin], hUSPpy[ibin], 2);           // MEL (normalized with a specific value)
   hnMEL[ibin]->SetTitle(Form("nMEL - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]));
 
   hMELMEBRatio[ibin]=division(hMEL[ibin], hMEBpy[ibin]);      // MEL / MEB
@@ -239,8 +249,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
     hLSBnMELRatio[ibin]->Draw("e");
     hLSBnMEBRatio[ibin]->Draw("e same");
     legend4->Draw();
-  }
-  else if(chosenPt==ibin){
+  } else if(chosenPt==ibin){
     canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin+1]), 1600, 800);
     canvas[ibin]->Divide(2,1);
     canvas[ibin]->cd(1);
@@ -333,10 +342,9 @@ TH1D * division(TH1D *h1, TH1D *h2)
   Int_t nBin1=h1->GetXaxis()->GetNbins();
   Int_t nBin2=h2->GetXaxis()->GetNbins();
   if(nBin1==nBin2){
-  TH1D * hResult = (TH1D*) h1->Clone();
-  hResult->Divide(h2);
-  }
-  else{
+ 	hResult = (TH1D*) h1->Clone();
+  	hResult->Divide(h2);
+  } else {
     Printf("Histograms do not have the same binning.  nBin1 = %d, nBin2 = %d", nBin1, nBin2);
     return NULL;
   }
@@ -355,12 +363,11 @@ TH1D * normMEB(TH1D *h1, TH1D *h2, Int_t method /*chosen method for normalizing 
   TH1D * hResult = (TH1D*) h1->Clone();
   hResult->Scale(1./normVal);
   return hResult;
-  }
-  else if(method==2){
+  } else if(method==2) {
   if(!h1 || !h2) 
     return NULL;
     TH1D* hResult = (TH1D*)h1->Clone(Form("%s_MEB", h1->GetName()));
-    const Double_t l[2] = { 1.15, 1.2 };
+    const Double_t l[2] = {1.15, 1.2};
     const Int_t iMinBin = h1->GetXaxis()->FindBin(l[0]);
     const Int_t iMaxBin = h1->GetXaxis()->FindBin(l[1]);
     const Int_t iMinBin2 = h2->GetXaxis()->FindBin(l[0]);
