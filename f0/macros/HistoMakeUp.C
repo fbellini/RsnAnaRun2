@@ -1,3 +1,8 @@
+#include "TAxis.h"
+#include "TH1.h"
+#ifndef HistoMakeUp_C
+#define HistoMakeUp_C
+
 void HistoMakeUp(TH1 * histo, 
 		 Color_t color = kBlack,
 		 Int_t marker = 20,
@@ -24,3 +29,4 @@ void HistoMakeUp(TH1 * histo,
   histo->SetMarkerSize(1.);
   return;
 }
+#endif
