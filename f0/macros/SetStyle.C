@@ -1,3 +1,10 @@
+#include "TStyle.h"
+#include "iostream"
+using std::cout;
+using std::endl;
+#ifndef SetStyle_C
+#define SetStyle_C
+
 void SetStyle(Bool_t graypalette = 0) {
   cout << "Setting style!" << endl;
   
@@ -36,6 +43,5 @@ void SetStyle(Bool_t graypalette = 0) {
   gStyle->SetLegendFillColor(kWhite);
   //  gStyle->SetFillColor(kWhite);
   gStyle->SetLegendFont(42);
-
-
 }
+#endif
