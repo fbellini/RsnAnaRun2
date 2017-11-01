@@ -22,9 +22,10 @@ TH1D* normMEB(TH1D* h1, TH1D* h2, Int_t method /*chosen method for normalizing M
 void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
             Double_t chosenPt = 1 /*chosen pT for plotting, if chosenPt = -1 plot all pTs
             list of matches
-            0.5 < pT < 1.0 -> chosenPt=0; 1.0 < pT < 1.5 -> chosenPt=1; 1.5 < pT < 2.0 -> chosenPt=2; 2.0 < pT < 2.5 -> chosenPt=3;
-		        2.5 < pT < 3.0 -> chosenPt=4; 3.0 < pT < 4.0 -> chosenPt=5; 4.0 < pT < 5.0 -> chosenPt=6; 5.0 < pT < 7.0 -> chosenPt=7;
-            7.0 < pT < 9.0 -> chosenPt=8; 9.0 < pT < 11.0 -> chosenPt=9 */,
+            0.5 < pT < 1.0 -> chosenPt=0; 1.0 < pT < 1.5 -> chosenPt=1; 1.5 < pT < 2.0 -> chosenPt=2; 
+	    2.0 < pT < 2.5 -> chosenPt=3; 2.5 < pT < 3.0 -> chosenPt=4; 3.0 < pT < 4.0 -> chosenPt=5; 
+	    4.0 < pT < 5.0 -> chosenPt=6; 5.0 < pT < 7.0 -> chosenPt=7; 7.0 < pT < 9.0 -> chosenPt=8; 
+	    9.0 < pT < 11.0 -> chosenPt=9 */,
             Bool_t mc = kFALSE
 )
 {
@@ -358,7 +359,8 @@ TH1D * normMEB(TH1D *h1, TH1D *h2, Int_t method /*chosen method for normalizing 
   else if(method==2){
   if(!h1 || !h2) 
     return NULL;
-  const Double_t l[2] = { 1.15, 1.2 };
+    TH1D* hResult = (TH1D*)h1->Clone(Form("%s_MEB", h1->GetName()));
+    const Double_t l[2] = { 1.15, 1.2 };
     const Int_t iMinBin = h1->GetXaxis()->FindBin(l[0]);
     const Int_t iMaxBin = h1->GetXaxis()->FindBin(l[1]);
     const Int_t iMinBin2 = h2->GetXaxis()->FindBin(l[0]);
