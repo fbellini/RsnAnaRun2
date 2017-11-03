@@ -125,7 +125,6 @@ void mc_eff(Int_t rebinVar = 5 /*rebinning factor*/,
   }
   } else {
     Printf("Histograms do not have the same binning.  nBin1 = %d, nBin2 = %d", nBin1, nBin2);
-    return NULL;
   }
     //fout->Close();
     return;
