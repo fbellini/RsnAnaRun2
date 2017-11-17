@@ -22,12 +22,14 @@ class AliAnalysisTaskMyTask : public AliAnalysisTaskSE
         virtual void            UserExec(Option_t* option);
         virtual void            Terminate(Option_t* option);
 
-    private:
+ private:
+	void                    FillDaughterPhaseSpaceHisto(AliStack * stack, TParticle * mother);
 	AliVVertex*             fPrimaryVertex;//!<! Primary vertex pointer
 
         TList*                  fOutputList;    //! output list
         TH2F*                   fHistF0Reco;
         TH2F*                   fHistF0Gen;
+	TH2F*                   fHistF0daughtersPhaseSpace;
 
 
 
