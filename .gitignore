@@ -1,0 +1,10 @@
+*/*.xml
+*/gdb*
+*/*outputs_valid
+*/*.png
+*/*.eps
+*/*.pdf
+f0/PbPb/*
+f0/note/*.aux
+f0/note/*.log
+
