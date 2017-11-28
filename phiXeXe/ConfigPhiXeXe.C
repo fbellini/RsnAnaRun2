@@ -74,7 +74,7 @@ Bool_t ConfigPhiXeXe(
   // [6][7] = MC true +-, -+ (Minv, pT, multiplicity)
   // [8][9] = MC true +-, -+ (Minv, pT, y)
   // [10][11] = mixing ++, -- (Minv, pT, multiplicity)
-  Bool_t  use     [8] = {!IsMcTrueOnly, !IsMcTrueOnly, !IsMcTrueOnly, !IsMcTrueOnly, isMC, isMC, useMixLS&(!IsMcTrueOnly), useMixLS&(!IsMcTrueOnly)};
+  Bool_t  use     [8] = {   !isMC,    !isMC,    !isMC,    !isMC,   isMC,    isMC,   useMixLS, useMixLS};
   TString name    [8] = {"Unlike", "Mixing", "LikePP", "LikeMM", "True", "TrueY", "MixingPP", "MixingMM"};
   TString comp    [8] = {"PAIR"  , "MIX"   , "PAIR"  , "PAIR"  , "TRUE", "TRUE" , "MIX"     , "MIX"};
   Int_t   pdgCode [8] = {333     , 333     , 333     , 333     , 333   , 333    , 333       , 333  };

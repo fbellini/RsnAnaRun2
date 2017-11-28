@@ -37,25 +37,49 @@ class AliAnalysisGrid;
 /***   !!! THE USER HAVE TO SET THE FOLLOWING VARIABLES!!!   ***/
 /***************************************************************/
 /* Define here the input dataset for data and simulation */
-Int_t yearData = 2017;
-TString data = "LHC17n";
-Int_t ppass  = 1;
+Int_t yearData = 2015;
+TString data = "LHC15n";
+Int_t ppass  = 4;
 Int_t yearMC = 2017;
-TString sim = "LHC17j7";
+TString sim = "LHC17d8";
 
 /* AOD number. Set aodN = 0 for AOD produced with reconstruction, which have no number. Set aodN = -1 for ESDs */
 Int_t aodN = -1;
 
 /* Define the run list and the run range for the analysis.*/
-Int_t runNmin=1;
-Int_t runNmax=2;
-Int_t runList[2] = {280234, 280235};
+Int_t runNmin=3;
+Int_t runNmax=4;
+Int_t runList[27] = {244340, 244343, 244351, 244355, 244359, 244364, 244377, 244411, 244416, 244418,
+		     244421, 244453, 244456, 244480, 244481, 244482, 244483, 244484, 244531, 244540,
+		     244542, 244617, 244618, 244619, 244626, 244627, 244628};
 
 /* The following flags are needed to configure the analysis */
-Bool_t isPP = 0;
+Bool_t isPP = 1;
 Bool_t isMC = 0;
 Bool_t isESD = 1;
+Bool_t useTender = kFALSE;
 Int_t nmix = 5; 
+
+// /* Define here the input dataset for data and simulation */
+// Int_t yearData = 2017;
+// TString data = "LHC17n";
+// Int_t ppass  = 1;
+// Int_t yearMC = 2017;
+// TString sim = "LHC17j7";
+
+// /* AOD number. Set aodN = 0 for AOD produced with reconstruction, which have no number. Set aodN = -1 for ESDs */
+// Int_t aodN = -1;
+
+// /* Define the run list and the run range for the analysis.*/
+// Int_t runNmin=1;
+// Int_t runNmax=2;
+// Int_t runList[2] = {280234, 280235};
+
+// /* The following flags are needed to configure the analysis */
+// Bool_t isPP = 0;
+// Bool_t isMC = 0;
+// Bool_t isESD = 1;
+// Int_t nmix = 5; 
 
 /* Define data path */
 TString myGridDataDir="";
@@ -70,7 +94,7 @@ TString myExecutableName = "RunPhi";
 TString myMacroName = "RunPhi";
 
 /* the macros are normally in the Rsn Package */
-TString loadMacroPath = "~/alice/resonances/phiXeXe"; //no trailing slash at the end
+TString loadMacroPath = "~/alice/resonances/RsnAnaRun2/phiXeXe"; //no trailing slash at the end
 
 /* Set the usage of the alien plugin to kTRUE to run the analysis on grid or in test mode,
    set it to kFALSE to run test locally */
