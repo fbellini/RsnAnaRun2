@@ -64,26 +64,26 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
   /* binning: 500 MeV bins up to 3 GeV/c, then 1 GeV bins up to 5 GeV/c, then 2 GeV up to 11 GeV/c */
   Double_t pT[11] = {0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11.};
 
-  TH1D* hLikePPpy[11];
-  TH1D* hLikeMMpy[11];
-  TH1D* hMEBpy[11];
-  TH1D* hUSPpy[11];
-  TH1D* hLSBRatio[11];
-  TH1D* hGeoMean[11];
-  TH1D* hSum[11];
-  TH1D* hnMEB[11];
-  TH1D* hMELRatio[11];
-  TH1D* hMELMEBRatio[11];
-  TH1D* hUSPminusLSB1[11];
-  TH1D* hUSPminusLSB2[11];
-  TH1D* hUSPminusMEB[11];
-  TH1D* hUSPminusMEL[11];
-  TH1D* hMELMMpy[11];
-  TH1D* hMELPPpy[11];
-  TH1D* hMEL[11];
-  TH1D* hnMEL[11];
-  TH1D* hLSBnMELRatio[11];
-  TH1D* hLSBnMEBRatio[11];
+  TH1D* hLikePPpy[10];
+  TH1D* hLikeMMpy[10];
+  TH1D* hMEBpy[10];
+  TH1D* hUSPpy[10];
+  TH1D* hLSBRatio[10];
+  TH1D* hGeoMean[10];
+  TH1D* hSum[10];
+  TH1D* hnMEB[10];
+  TH1D* hMELRatio[10];
+  TH1D* hMELMEBRatio[10];
+  TH1D* hUSPminusLSB1[10];
+  TH1D* hUSPminusLSB2[10];
+  TH1D* hUSPminusMEB[10];
+  TH1D* hUSPminusMEL[10];
+  TH1D* hMELMMpy[10];
+  TH1D* hMELPPpy[10];
+  TH1D* hMEL[10];
+  TH1D* hnMEL[10];
+  TH1D* hLSBnMELRatio[10];
+  TH1D* hLSBnMEBRatio[10];
 
   for (Int_t i = 0; i < 10; i++) {
     hLikePPpy[i] = 0x0;
@@ -123,7 +123,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
 
     /*  projecting histos in 1d to get invariant mass spectra */
     hUSPpy[ibin] = (TH1D*)hUSP->ProjectionX(Form("hUSP_pT_%2.1f-%2.1f", pT[ibin], pT[ibin + 1]), iMinBinPt, iMaxBinPt);
-    hUSPpy[ibin]->SetTitle(Form("USP - LSB %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
+    hUSPpy[ibin]->SetTitle(Form("USP %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     hUSPpy[ibin]->RebinX(rebinVar);
 
     hLikeMMpy[ibin] = (TH1D*)hLikeMM->ProjectionX(Form("hLikeMM_pT_%2.1f-%2.1f", pT[ibin], pT[ibin + 1]), iMinBinPt, iMaxBinPt);
@@ -148,7 +148,7 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
 
     /* Bg estimation */
     hGeoMean[ibin] = geoMean(hLikePPpy[ibin], hLikeMMpy[ibin]); //LSB calculated with geometric mean
-    hGeoMean[ibin]->SetTitle(Form("Estimated bg - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
+    hGeoMean[ibin]->SetTitle(Form("LSB geometric mean - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     //hGeoMean[ibin]->GetYaxis()->SetRangeUser(0.,0.7e6);
 
     hSum[ibin] = sum(hLikePPpy[ibin], hLikeMMpy[ibin]); //LSB calculated with arithmetic mean
@@ -158,16 +158,16 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
     hLSBRatio[ibin]->SetTitle(Form("Like Sign Ratios - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     //hLSBRatio[ibin]->GetYaxis()->SetRangeUser(0.8,1.2);
 
-    hnMEB[ibin] = normMEB(hMEBpy[ibin], hUSPpy[ibin], 2); // MEB (normalized with a specific value)
+    hnMEB[ibin] = normMEB(hMEBpy[ibin], hUSPpy[ibin], 2); 
     hnMEB[ibin]->SetTitle(Form("nMEB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
-    //Printf("... %f", hUSPpy[ibin]->GetBinContent(hUSPpy[ibin]->FindBin(0.7)) - hnMEB[ibin]->GetBinContent(hnMEB[ibin]->FindBin(0.7)));
+    
     hMELRatio[ibin] = division(hMELMMpy[ibin], hMELPPpy[ibin]); // MEL -- / MEL ++
     hMELRatio[ibin]->SetTitle(Form("MEL (--)/ MEL (++) - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
 
     hMEL[ibin] = geoMean(hMELPPpy[ibin], hMELMMpy[ibin]); // MEL calculated with geometric mean
     hMEL[ibin]->SetTitle(Form("MEL geoMean - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
 
-    hnMEL[ibin] = normMEB(hMEL[ibin], hUSPpy[ibin], 2); // MEL (normalized with a specific value)
+    hnMEL[ibin] = normMEB(hMEL[ibin], hUSPpy[ibin], 2); // MEL
     hnMEL[ibin]->SetTitle(Form("nMEL - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
 
     hMELMEBRatio[ibin] = division(hMEL[ibin], hMEBpy[ibin]); // MEL / MEB
@@ -177,14 +177,14 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
     hLSBnMEBRatio[ibin]->SetTitle(Form("LSB / nMEB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
 
     hLSBnMELRatio[ibin] = division(hGeoMean[ibin], hnMEL[ibin]); // LSB/nMEL
-    hLSBnMELRatio[ibin]->SetTitle(Form("Different methods - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
+    hLSBnMELRatio[ibin]->SetTitle(Form("LSB/nMEL - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     //hLSBnMELRatio[ibin]->GetYaxis()->SetRangeUser(0.8,1.2);
 
     /* Bg subtraction */
     hUSPminusLSB1[ibin] = subtraction(hUSPpy[ibin], hSum[ibin]);
-    hUSPminusLSB1[ibin]->SetTitle(Form("USP-LSB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
+    hUSPminusLSB1[ibin]->SetTitle(Form("USP-LSB (Sum) - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     hUSPminusLSB2[ibin] = subtraction(hUSPpy[ibin], hGeoMean[ibin]);
-    hUSPminusLSB2[ibin]->SetTitle(Form("USP-bg - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
+    hUSPminusLSB2[ibin]->SetTitle(Form("USP-LSB (geo mean) - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
     //hUSPminusLSB2[ibin]->GetYaxis()->SetRangeUser(0.,6.4e4);
     hUSPminusMEB[ibin] = subtraction(hUSPpy[ibin], hnMEB[ibin]);
     hUSPminusMEB[ibin]->SetTitle(Form("USP-MEB - %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]));
@@ -193,31 +193,31 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
 
     /* Histo maquillage */
     HistoMakeUp(hGeoMean[ibin], kMagenta - 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
-    HistoMakeUp(hLSBRatio[ibin], kAzure + 7, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
+    HistoMakeUp(hLSBRatio[ibin], kMagenta - 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
     HistoMakeUp(hnMEB[ibin], kGreen - 9, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
     HistoMakeUp(hnMEL[ibin], kGreen + 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
-    HistoMakeUp(hMELRatio[ibin], kMagenta, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
-    HistoMakeUp(hMELMEBRatio[ibin], kGreen + 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
+    HistoMakeUp(hMELRatio[ibin], kGreen + 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
+    HistoMakeUp(hMELMEBRatio[ibin], kGreen, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
     HistoMakeUp(hLSBnMELRatio[ibin], kRed, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
     HistoMakeUp(hLSBnMEBRatio[ibin], kBlue, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "ratio");
-    HistoMakeUp(hUSPminusLSB2[ibin], kRed, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
-    HistoMakeUp(hUSPminusMEB[ibin], kBlue + 1, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
+    HistoMakeUp(hUSPminusLSB2[ibin], kMagenta - 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
+    HistoMakeUp(hUSPminusMEB[ibin], kGreen - 9, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
     HistoMakeUp(hUSPminusMEL[ibin], kGreen + 2, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
     HistoMakeUp(hUSPpy[ibin], kBlack, 20, "#it{M}_{#pi#pi}(GeV/#it{c^{2}})", "pairs");
 
     TLegend* legend1 = new TLegend(0.75, 0.75, 0.9, 0.9);
     legend1->AddEntry(hGeoMean[ibin], "LSB", "lpf");
-    legend1->AddEntry(hnMEB[ibin], "MEB", "lpf");
-    legend1->AddEntry(hnMEL[ibin], "MEL", "lpf");
+    legend1->AddEntry(hnMEB[ibin], "nMEB", "lpf");
+    legend1->AddEntry(hnMEL[ibin], "nMEL", "lpf");
     legend1->AddEntry(hUSPpy[ibin], "USP", "lpf");
 
     TLegend* legend2 = new TLegend(0.75, 0.75, 0.9, 0.9);
-    legend2->AddEntry(hUSPminusLSB2[ibin], "LSB", "lpf");
-    legend2->AddEntry(hUSPminusMEB[ibin], "MEB", "lpf");
-    legend2->AddEntry(hUSPminusMEL[ibin], "MEL", "lpf");
+    legend2->AddEntry(hUSPminusLSB2[ibin], "USP-LSB", "lpf");
+    legend2->AddEntry(hUSPminusMEB[ibin], "USP-MEB", "lpf");
+    legend2->AddEntry(hUSPminusMEL[ibin], "USP-MEL", "lpf");
 
     TLegend* legend3 = new TLegend(0.75, 0.75, 0.9, 0.9);
-    legend3->AddEntry(hLSBRatio[ibin], "LSP (--)/ LSP (++)", "lpf");
+    legend3->AddEntry(hLSBRatio[ibin], "LSB (--)/ LSB (++)", "lpf");
     legend3->AddEntry(hMELRatio[ibin], "MEL (--)/ MEL (++)", "lpf");
 
     TLegend* legend4 = new TLegend(0.75, 0.75, 0.9, 0.9);
@@ -226,80 +226,55 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
 
 
     /* drawing and printing output*/
-    if (chosenPt == -1) {
-      canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
-      canvas[ibin]->Divide(2, 1);
-      canvas[ibin]->cd(1);
-      hGeoMean[ibin]->Draw("e");
-      hnMEB[ibin]->Draw("e same");
-      hnMEL[ibin]->Draw("e same");
-      hUSPpy[ibin]->Draw("e same");
-      legend1->Draw();
-      canvas[ibin]->cd(2);
-      hUSPminusLSB2[ibin]->Draw("e");
-      hUSPminusMEB[ibin]->Draw("e same");
-      hUSPminusMEL[ibin]->Draw("e same");
-      legend2->Draw();
-      canvas[ibin] = new TCanvas(Form("c%d_ratio", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
-      canvas[ibin]->Divide(2, 1);
-      canvas[ibin]->cd(1);
-      hLSBRatio[ibin]->Draw("e");
-      hMELRatio[ibin]->Draw("e same");
-      legend3->Draw();
-      canvas[ibin]->cd(2);
-      hLSBnMELRatio[ibin]->Draw("e");
-      hLSBnMEBRatio[ibin]->Draw("e same");
-      legend4->Draw();
-    } else if (chosenPt == ibin) {
-      canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
-      canvas[ibin]->Divide(2, 1);
-      canvas[ibin]->cd(1);
-      hGeoMean[ibin]->Draw("e");
-      hnMEB[ibin]->Draw("e same");
-      hnMEL[ibin]->Draw("e same");
-      hUSPpy[ibin]->Draw("e same");
-      legend1->Draw();
-      canvas[ibin]->cd(2);
-      hUSPminusLSB2[ibin]->Draw("e");
-      hUSPminusMEB[ibin]->Draw("e same");
-      hUSPminusMEL[ibin]->Draw("e same");
-      legend2->Draw();
-      canvas[ibin] = new TCanvas(Form("c%d_ratio", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
-      canvas[ibin]->Divide(2, 1);
-      canvas[ibin]->cd(1);
-      hLSBRatio[ibin]->Draw("e");
-      hMELRatio[ibin]->Draw("e same");
-      legend3->Draw();
-      canvas[ibin]->cd(2);
-      hLSBnMELRatio[ibin]->Draw("e");
-      hLSBnMEBRatio[ibin]->Draw("e same");
-      legend4->Draw();
-
-      /* writing output on file.root*/
-      fout->cd();
-      hUSPpy[ibin]->Write("USP");
-      hLikeMMpy[ibin]->Write("LikeMM");
-      hLikePPpy[ibin]->Write("LikePP");
-      hMEBpy[ibin]->Write("MEB");
-      hMELMMpy[ibin]->Write("MELmm");
-      hMELPPpy[ibin]->Write("MELpp");
-      hGeoMean[ibin]->Write("LSBGeoMean");
-      hSum[ibin]->Write("LSBSum");
-      hLSBRatio[ibin]->Write("LSBRatio");
-      hnMEB[ibin]->Write("nMEB");
-      hMELRatio[ibin]->Write("MELRatio");
-      hMEL[ibin]->Write("MEL");
-      hnMEL[ibin]->Write("nMEL");
-      hMELMEBRatio[ibin]->Write("MEL/MEB");
-      hLSBnMELRatio[ibin]->Write("nMELRatio");
-      hUSPminusLSB1[ibin]->Write("USP-LSBGeoMean");
-      hUSPminusLSB2[ibin]->Write("USP-LSBSum");
-      hUSPminusMEB[ibin]->Write("USP-MEB");
-      hUSPminusMEL[ibin]->Write("USP-MEL");
-    }
+    canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
+    canvas[ibin]->Divide(2, 1);
+    canvas[ibin]->cd(1);
+    hUSPpy[ibin]->Draw("e");		
+    hGeoMean[ibin]->Draw("e same");
+    hnMEB[ibin]->Draw("e same");
+    hnMEL[ibin]->Draw("e same");
+    legend1->Draw();
+    canvas[ibin]->cd(2);
+    hUSPminusLSB2[ibin]->Draw("e");
+    hUSPminusMEB[ibin]->Draw("e same");
+    hUSPminusMEL[ibin]->Draw("e same");
+    legend2->Draw();
+    canvas[ibin] = new TCanvas(Form("c%d_ratio", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
+    canvas[ibin]->Divide(2, 1);
+    canvas[ibin]->cd(1);
+    hLSBRatio[ibin]->Draw("e");
+    hMELRatio[ibin]->Draw("e same");
+    legend3->Draw();
+    canvas[ibin]->cd(2);
+    hLSBnMELRatio[ibin]->Draw("e");
+    hLSBnMEBRatio[ibin]->Draw("e same");
+    legend4->Draw();
+  
+    /* writing output on file.root*/
+    fout->cd();
+    hUSPpy[ibin]->Write("USP");
+    hLikeMMpy[ibin]->Write("LikeMM");
+    hLikePPpy[ibin]->Write("LikePP");
+    hMEBpy[ibin]->Write("MEB");
+    hMELMMpy[ibin]->Write("MELmm");
+    hMELPPpy[ibin]->Write("MELpp");
+    hGeoMean[ibin]->Write("LSBGeoMean");
+    hSum[ibin]->Write("LSBSum");
+    hLSBRatio[ibin]->Write("LSBRatio");
+    hnMEB[ibin]->Write("nMEB");
+    hMELRatio[ibin]->Write("MELRatio");
+    hMEL[ibin]->Write("MEL");
+    hnMEL[ibin]->Write("nMEL");
+    hMELMEBRatio[ibin]->Write("MEL/MEB");
+    hLSBnMEBRatio[ibin]->Write("LSB/MEB");
+    hLSBnMELRatio[ibin]->Write("nMELRatio");
+    hUSPminusLSB1[ibin]->Write("USP-LSBGeoMean");
+    hUSPminusLSB2[ibin]->Write("USP-LSBSum");
+    hUSPminusMEB[ibin]->Write("USP-MEB");
+    hUSPminusMEL[ibin]->Write("USP-MEL");
   }
   //fout->Close();
-  return;
+  // return;
 }
 
 TH1D* geoMean(TH1D* h1, TH1D* h2)
@@ -317,7 +292,8 @@ TH1D* geoMean(TH1D* h1, TH1D* h2)
     error2 = h2->GetBinError(j);
     geoMean = pow((cont1 * cont2), 1. / 2);
     product = 2 * geoMean;
-    error3 = pow((pow(error1, 2) + pow(error2, 2)), 1. / 2);
+    error3 = pow(cont2/cont1*(pow(error1, 2)) + cont1/cont2*(pow(error2, 2)), 1. / 2); 
+    //error3 = pow((pow(error1, 2) + pow(error2, 2)), 1. / 2); //NNNNOOOOOOO!!!!!!
     hGeoMean->SetBinContent(j, product);
     hGeoMean->SetBinError(j, error3);
   }
