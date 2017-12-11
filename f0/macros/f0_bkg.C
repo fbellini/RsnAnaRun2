@@ -268,8 +268,8 @@ void f0_bkg(Int_t rebinVar = 10 /*rebinning factor*/,
     hMELMEBRatio[ibin]->Write("MEL/MEB");
     hLSBnMEBRatio[ibin]->Write("LSB/MEB");
     hLSBnMELRatio[ibin]->Write("nMELRatio");
-    hUSPminusLSB1[ibin]->Write("USP-LSBGeoMean");
-    hUSPminusLSB2[ibin]->Write("USP-LSBSum");
+    hUSPminusLSB2[ibin]->Write("USP-LSBGeoMean");
+    hUSPminusLSB1[ibin]->Write("USP-LSBSum");
     hUSPminusMEB[ibin]->Write("USP-MEB");
     hUSPminusMEL[ibin]->Write("USP-MEL");
   }
