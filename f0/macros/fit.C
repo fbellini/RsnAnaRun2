@@ -14,6 +14,7 @@
 #include "TMath.h"
 #include "TRandom.h"
 
+
 using namespace RooFit ;
 
 void fit()
@@ -27,39 +28,54 @@ void fit()
   TH1D * hUSPminusLSB = (TH1D*)file->Get("USP-LSBGeoMean");
 
   // Setup components
-  RooRealVar x("x","x",0.6,1.2);
+  RooRealVar x("x","x",0.8,1.2);
   RooDataHist dh("dh","dh",x,Import(*hUSPminusLSB));
-  RooPlot* frame = x.frame(Title("USP-LSB 2.0 < p_{T} < 2.5 GeV/#it{c}"));
+  RooPlot* frame = x.frame(Title(hUSPminusLSB->GetTitle()));
   dh.plotOn(frame,DataError(RooAbsData::SumW2));
+  //dh->statOn(frame,Layout(0.55,0.99,0.8));
 
-  // Signal (Voigtian PDFs)
-  RooRealVar mRho("mRho","mRho",0.77526); //rho(770) invariant mass = 775.26 /pm 0.25 MeV
-  RooRealVar sigmaRho("sigmaRho","sigmaRho",0.0025);
-  RooRealVar widthRho( "widthRho", "widthRho", 0.149);
-  RooVoigtian sigRho("sigRho","sigRho", x, mRho, widthRho, sigmaRho, kFALSE);
-  //RooRelBW sigRho("sigRho","sigRho", x, mRho, widthRho);
-
-  RooRealVar mF0("mF0","mF0",0.99); //f0(980) invariant mass = 990 /pm 20 MeV
+  // F0 signal
+  RooRealVar mF0("mF0","mF0",0.99,0.97,1.01); //f0(980) invariant mass = 990 /pm 20 MeV
   RooRealVar sigmaF0("sigmaF0","sigmaF0",0.02);
-  RooRealVar widthF0("widthF0", "widthF0",0.05);
+  RooRealVar widthF0("widthF0", "widthF0",0.05,0.01,0.1);
+  //RooGaussian gauss("gauss","gauss",x,mF0,sigmaF0);
+  //RooRelBW relBW("relBW","relBW", x, mF0, widthF0);
+  //x.setBins(10000,"cache") ;
+  //RooFFTConvPdf sigF0("sigF0","Rel (X) gauss",x,relBW,gauss) ;
+
   RooVoigtian sigF0("sigF0", "sigF0", x, mF0, widthF0, sigmaF0, kFALSE);
-  //RooRelBW sigF0("sigF0","sigF0", x, mF0, widthF0);
+  //RooBreitWigner sigF0("sigF0","sigF0", x, mF0, widthF0);
 
-  RooRealVar f("f","f",0.6,1.2) ;
-  RooAddPdf sig("sig", "Signal", RooArgList(sigRho, sigF0),f);
+  // Bkg
+  RooRealVar alpha("alpha","alpha",-8.) ;
+  RooExponential bkg("bkg","Background 1",x,alpha);
 
-  // Background (Maxwell Boltzmann PDF)
-  RooGenericPdf bkg("bkg","bkg","(2*sqrt(x/3.14)*pow(1,1.5)*exp(-x))",RooArgSet(x)) ;
+  RooRealVar beta("beta", "beta", -0.5);
+  RooExponential bkg2("bkg2","Background 2",x,beta);
 
-  RooRealVar res("res","res", 0.6, 1.2);
-  RooAddPdf func("func","func", RooArgList(sig, bkg),res);
-  func.fitTo(dh, Extended());
+  // Sum the background components into a composite background p.d.f.
+  RooRealVar sigFrac("sigFrac","fraction of component 1 in background",0.2,0.,1.) ;
+  RooAddPdf sumbkg("sumbkg","Signal",RooArgList(bkg,bkg2),sigFrac) ;
+
+
+  RooRealVar bkgFrac("bkgFrac","fraction of background",0.5,0.,1.) ;
+  RooAddPdf  func("model","g1+g2+a",RooArgList(sumbkg,sigF0),bkgFrac) ;
+
+
+  func.fitTo(dh/*, Extended()*/);
   func.plotOn(frame);
-  func.plotOn(frame,Components(bkg),LineStyle(kDashed));
+  func.paramOn(frame,Layout(0.4));
+  func.plotOn(frame,Components(bkg),LineStyle(kDashed), LineColor(kRed));
+  func.plotOn(frame,Components(bkg2),LineStyle(kDashed), LineColor(kYellow));
+  func.plotOn(frame,Components(sigF0),LineStyle(kDashed), LineColor(kBlue));
+  //  sig.plotOn(frame,Components(sigRho),LineStyle(kDashed), LineColor(kOrange));
+
 
   RooFitResult* r = func.fitTo(dh,Save());
   r->Print("v");
 
+
+  // Draw all frames on a canvas
   TCanvas* c = new TCanvas("FitResult","FitResult",1200,600);
   c->Divide(2,1);
   c->cd(1);
@@ -68,9 +84,13 @@ void fit()
   frame->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
   frame->Draw();
 
-/*TPaveText *pt = new TPaveText(.05,.1,.95,.8);
-  pt->AddText("#frac{2s}{#pi#alpha^{2}}  ESEMPIO");
+  RooArgSet* params = func.getParameters(x) ;
+  RooArgSet* initParams = (RooArgSet*) params->snapshot() ;
+
+  /*TPaveText *pt = new TPaveText(.05,.1,.95,.8);
+  pt->AddText(params->printLatex(Sibling(*initParams)));
   pt->SetLabel("Born equation");
+  c->cd(2);
   pt->Draw();*/
 
 return;
