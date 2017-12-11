@@ -24,51 +24,38 @@ void fit()
   #endif
 
   TFile *file = TFile::Open("bgSubtraction.root");
-  TH1D * hUSPminusLSB = (TH1D*)file.Get("USP-LSBGeoMean");
+  TH1D * hUSPminusLSB = (TH1D*)file->Get("USP-LSBGeoMean");
 
   // Setup components
   RooRealVar x("x","x",0.6,1.2);
   RooDataHist dh("dh","dh",x,Import(*hUSPminusLSB));
-  RooPlot* frame = x.frame(Title(hUSPminusLSB->GetTitle()));
+  RooPlot* frame = x.frame(Title("USP-LSB 2.0 < p_{T} < 2.5 GeV/#it{c}"));
   dh.plotOn(frame,DataError(RooAbsData::SumW2));
 
-  // Signal 
-  RooRealVar mRho("mRho","mRho",0.77526, 0.77501, 0.77551); //rho(770) invariant mass = 775.26 /pm 0.25 MeV
+  // Signal (Voigtian PDFs)
+  RooRealVar mRho("mRho","mRho",0.77526); //rho(770) invariant mass = 775.26 /pm 0.25 MeV
+  RooRealVar sigmaRho("sigmaRho","sigmaRho",0.0025);
   RooRealVar widthRho( "widthRho", "widthRho", 0.149);
-  RooRelBW sigRho("sigRho","sigRho", x, mRho, widthRho);
+  RooVoigtian sigRho("sigRho","sigRho", x, mRho, widthRho, sigmaRho, kFALSE);
+  //RooRelBW sigRho("sigRho","sigRho", x, mRho, widthRho);
 
-  RooRealVar mF0("mF0","mF0",0.99, 0.97, 1.01); //f0(980) invariant mass = 990 /pm 20 MeV
+  RooRealVar mF0("mF0","mF0",0.99); //f0(980) invariant mass = 990 /pm 20 MeV
+  RooRealVar sigmaF0("sigmaF0","sigmaF0",0.02);
   RooRealVar widthF0("widthF0", "widthF0",0.05);
-  RooRelBW sigF0("sigF0","sigF0", x, mF0, widthF0);
+  RooVoigtian sigF0("sigF0", "sigF0", x, mF0, widthF0, sigmaF0, kFALSE);
+  //RooRelBW sigF0("sigF0","sigF0", x, mF0, widthF0);
 
-  RooRealVar sig1frac("sig1frac","fraction of component 1 in signal",0.1,0.0001,0.2) ;
-  RooAddPdf sig("sig","Signal",RooArgList(sigRho,sigF0),sig1frac) ;
+  RooRealVar f("f","f",0.6,1.2) ;
+  RooAddPdf sig("sig", "Signal", RooArgList(sigRho, sigF0),f);
 
-
-  // Background (pol2 + exponential)
-  RooRealVar p0("p0", "p0", 17500., 15000., 20000.);
-  RooRealVar p1("p1", "p1", 500., 1., 1000.);
-  RooRealVar p2("p2", "p2", 500., 1., 1000.);
-  RooPolynomial bkg("bkb","bkg", x, RooArgList(p0, p1, p2));
-
-
-  //RooRealVar alpha("alpha","alpha",-1) ;
-  //RooExponential bkg2("bkg2","Background 2",x,alpha) ;
-
-  RooRealVar MBNorm("MBNorm", "MBNorm", 2.,0., 5.);
-  RooGenericPdf bkg2("bkg2","bkg2","(MBNorm*sqrt(x/TMath::pi)*pow(1,1.5)*exp(-x))",RooArgSet(x, MBNorm)) ;
-
-  RooRealVar sum2("sum2", "sum2", 0.6, 1.2);
-  RooAddPdf sumbkg("sumbkg","sumbkg",RooArgList(bkg,bkg2),sum2) ;
+  // Background (Maxwell Boltzmann PDF)
+  RooGenericPdf bkg("bkg","bkg","(2*sqrt(x/3.14)*pow(1,1.5)*exp(-x))",RooArgSet(x)) ;
 
   RooRealVar res("res","res", 0.6, 1.2);
-  RooAddPdf func("func","func", RooArgList(sig, sumbkg),res);
+  RooAddPdf func("func","func", RooArgList(sig, bkg),res);
   func.fitTo(dh, Extended());
   func.plotOn(frame);
-  func.plotOn(frame,Components(sumbkg),LineStyle(kDashed), LineColor(kRed));
-  func.plotOn(frame,Components(bkg2),LineStyle(kDashed), LineColor(kYellow));
-  func.plotOn(frame,Components(sigF0),LineStyle(kDashed), LineColor(kBlue));
-  func.plotOn(frame,Components(sigRho),LineStyle(kDashed), LineColor(kOrange)) RooRealVar res("res","res", 0.6, 1.2);
+  func.plotOn(frame,Components(bkg),LineStyle(kDashed));
 
   RooFitResult* r = func.fitTo(dh,Save());
   r->Print("v");
