@@ -13,7 +13,6 @@
 #include "TH1D.h"
 #include "TMath.h"
 #include "TRandom.h"
-#include "RooRelBW.h"
 #include "TParticlePDG.h"
 #include "HistoMakeUp.C"
 #include "SetStyle.C"
@@ -43,8 +42,8 @@ void f0_fit(
 {
 
   #ifdef __CINT__
-  gROOT->ProcessLine(".x RooRelBW.cxx+");
-  #endif
+  gROOT->ProcessLineSync(".x RooRelBW.cxx+") ;
+#endif
 
   TGaxis::SetMaxDigits(3);
 
@@ -73,19 +72,23 @@ void f0_fit(
   RooRealVar mF0("mF0","mF0",0.99,0.97,1.01); //f0(980) invariant mass = 990 /pm 20 MeV
   RooRealVar sigmaF0("sigmaF0","sigmaF0",0.02);
   RooRealVar widthF0("widthF0", "widthF0",0.04,0.01,0.1);
+
+  
   RooBreitWigner sigBW("sigF0","sigF0", x, mF0, widthF0);
   RooRelBW sigRelBW("relBW","relBW", x, mF0, widthF0);
   RooVoigtian sigVoig("sigF0", "sigF0", x, mF0, widthF0, sigmaF0, kFALSE);
 
+  
   // residual bkg - exponential(e^alpha) + exponential(e^beta)
-  RooRealVar alpha("alpha","alpha",-9.5);
+  RooRealVar alpha("alpha","alpha",-9.5,-11.0,-8.00);
   RooExponential bkg("bkg","Background 1",x,alpha);
-  RooRealVar beta("beta", "beta", -0.8);
+  RooRealVar beta("beta", "beta", -0.8,-11.0,-7.00);
   RooExponential bkg2("bkg2","Background 2",x,beta);
-  RooRealVar exp1Frac("alphaFrac","fraction of exp 1 in background",0.4,0.,1.);
+  RooRealVar exp1Frac("alphaFrac","fraction of exp 1 in background",0.5,0.,1.);
   RooAddPdf sumbkg("sumbkg","Background",RooArgList(bkg,bkg2),exp1Frac);
-  RooRealVar bkgFrac("bkgFrac","fraction of background",0.000001,0.,1.) ;
-
+  
+  RooRealVar bkgFrac("bkgFrac","fraction of background",0.5,0.,1.) ;
+  
   //model for signal + background for different p.d.f.
   RooAddPdf funcBW("model1","sig+bgBW",RooArgList(sumbkg,sigBW),bkgFrac);
   RooAddPdf funcRelBW("model2","sig+bgRelBW",RooArgList(sumbkg,sigRelBW),bkgFrac);
