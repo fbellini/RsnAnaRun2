@@ -10,11 +10,11 @@
 #include "RooPlot.h"
 #include "RooRealVar.h"
 #include "RooRelBW.h"
+#include "RooFlatte.h"
 #include "SetStyle.C"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TMath.h"
-#include "TParticlePDG.h"
 #include "TRandom.h"
 #include "TTree.h"
 
@@ -25,6 +25,8 @@ Color_t color[] = { kRed, kGreen, kBlue, kMagenta, kBlack };
 
 void f0_fit(
     TString infilename = "bgSubtraction.root",
+    Double_t xMinRange = 0.8;
+    Double_t xMaxRange = 1.2;
     Double_t iMinBinPt = 1.0,
     Double_t iMaxBinPt = 1.5,
     Int_t fitMethod = 3
@@ -41,6 +43,7 @@ void f0_fit(
 
 #ifdef __CINT__
   gROOT->ProcessLineSync(".x RooRelBW.cxx+");
+  gROOT->ProcessLineSync(".x RooFlatte.cxx+");
 #endif
 
   //input file
@@ -74,8 +77,6 @@ void f0_fit(
   Double_t fitParams[15];
 
   // Setup components
-  Double_t xMinRange = 0.8;
-  Double_t xMaxRange = 1.2;
   RooRealVar x("x", "x", xMinRange, xMaxRange);
   RooDataHist dh("dh", "dh", x, Import(*hUSPminusLSB));
   RooPlot* frame = x.frame(Title(hUSPminusLSB->GetTitle()));
@@ -113,10 +114,10 @@ void f0_fit(
     funcBW.plotOn(frame);
     funcBW.paramOn(frame, Layout(0.4));
     funcBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
-    funcBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]));
-    funcBW.plotOn(frame, Components(sigBW), LineStyle(kDashed), LineColor(color[2]));
+    funcBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcBW.plotOn(frame, Components(sigBW), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r1 = funcBW.fitTo(dh, Save());
-    r1->Print();
+    r1->Print("v");
     r1->correlationMatrix().Print();
     //RooArgSet* params = funcBW.getParameters(x);
     break;
@@ -125,9 +126,9 @@ void f0_fit(
     funcRelBW.fitTo(dh /*, Extended(), Save()*/);
     funcRelBW.plotOn(frame);
     funcRelBW.paramOn(frame, Layout(0.4));
-    funcRelBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]));
-    funcRelBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]));
-    funcRelBW.plotOn(frame, Components(sigRelBW), LineStyle(kDashed), LineColor(color[2]));
+    funcRelBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcRelBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcRelBW.plotOn(frame, Components(sigRelBW), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r2 = funcRelBW.fitTo(dh, Save());
     r2->Print("v");
     r2->correlationMatrix().Print();
@@ -138,9 +139,9 @@ void f0_fit(
     funcVoig.fitTo(dh /*, Extended(), Save()*/);
     funcVoig.plotOn(frame);
     funcVoig.paramOn(frame, Layout(0.4));
-    funcVoig.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]));
-    funcVoig.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]));
-    funcVoig.plotOn(frame, Components(sigVoig), LineStyle(kDashed), LineColor(color[2]));
+    funcVoig.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcVoig.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcVoig.plotOn(frame, Components(sigVoig), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r3 = funcVoig.fitTo(dh, Save());
     r3->Print("v");
     r3->correlationMatrix().Print();
@@ -161,15 +162,17 @@ void f0_fit(
   gStyle->SetOptTitle(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(1111);
+
   TCanvas* c = new TCanvas("c", "f0_fit", 1200, 600);
   c->Divide(2, 1);
+
   c->cd(1);
   gPad->SetLeftMargin(0.2);
   frame->GetYaxis()->SetTitleOffset(1);
   frame->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
   frame->Draw();
-  c->cd(2);
 
+  c->cd(2);
   Double_t signalMass = mF0.getVal();
   Double_t signalMassErr = mF0.getError();
   Double_t signalWidth = widthF0.getVal();
