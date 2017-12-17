@@ -25,8 +25,8 @@ Color_t color[] = { kRed, kGreen, kBlue, kMagenta, kBlack };
 
 void f0_fit(
     TString infilename = "bgSubtraction.root",
-    Double_t xMinRange = 0.8;
-    Double_t xMaxRange = 1.2;
+    Double_t xMinRange = 0.8,
+    Double_t xMaxRange = 1.2,
     Double_t iMinBinPt = 1.0,
     Double_t iMaxBinPt = 1.5,
     Int_t fitMethod = 3
