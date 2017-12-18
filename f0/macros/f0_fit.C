@@ -5,12 +5,12 @@
 #include "HistoMakeUp.C"
 #include "RooDataHist.h"
 #include "RooDataSet.h"
+#include "RooFlatte.h"
 #include "RooGaussian.h"
 #include "RooGlobalFunc.h"
 #include "RooPlot.h"
 #include "RooRealVar.h"
 #include "RooRelBW.h"
-#include "RooFlatte.h"
 #include "SetStyle.C"
 #include "TCanvas.h"
 #include "TH1.h"
@@ -21,15 +21,14 @@
 using namespace RooFit;
 using namespace RooStats;
 
-Color_t color[] = { kRed, kGreen, kBlue, kMagenta, kBlack };
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod);
+TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2);
 
 void f0_fit(
     TString infilename = "bgSubtraction.root",
     Double_t xMinRange = 0.8,
     Double_t xMaxRange = 1.2,
-    Double_t iMinBinPt = 1.0,
-    Double_t iMaxBinPt = 1.5,
-    Int_t fitMethod = 3
+    Int_t fitMethod = 2
     /*fitMethod allows to chose the function to perform f0 fit
   list of matches
   1 -> Breit Wigner
@@ -37,7 +36,6 @@ void f0_fit(
   3 -> Voigtian
   4 -> Flatte' */
 )
-
 {
   TGaxis::SetMaxDigits(3);
 
@@ -57,29 +55,48 @@ void f0_fit(
     return;
   }
 
-  TH1D* hUSPminusLSB = (TH1D*)fin->Get("USP-LSBGeoMean");
-  if (!hUSPminusLSB) {
-    Printf("Input histogram error.");
-    return;
+  TH1D* hUSPminusLSB[10];
+
+  for (Int_t i = 0; i < 10; i++) {
+    hUSPminusLSB[i] = 0x0;
   }
 
-  Double_t histo_integral = hUSPminusLSB->Integral();
+  Double_t pT[11] = { 0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11. };
+  TCanvas* canvas[10];
+  RooPlot* plotframe;
+  TPaveText *textFit = 0x0;
+  Double_t fitParameters[15];
 
-  TAxis* ptBins = (TAxis*)fin->Get("ptBins");
-  Int_t nPt = ptBins->GetNbins();
-  //Double_t binWidth = ptBins->GetBinWidth();
-  Int_t dimPt = nPt + 1;
-  Double_t pT[dimPt];
-  for (Int_t k = 0; k < dimPt; k++) {
-    pT[k] = ptBins->GetBinLowEdge(k + 1);
+  for (Int_t ibin = 0; ibin < 10; ibin++) {
+    hUSPminusLSB[ibin] = (TH1D*)fin->Get(Form("USP-LSBGeoMean_%d", ibin));
+    if (!hUSPminusLSB[ibin]) {
+      Printf("Input histogram error.");
+      return;
+    }
+
+
+    plotframe = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod);
+    textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8);
+
+    canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
+    canvas[ibin]->Divide(2, 1);
+    canvas[ibin]->cd(1);
+    plotframe->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
+    plotframe->Draw("e");
+    canvas[ibin]->cd(2);
+    textFit->Draw();
   }
+  return;
+}
 
-  Double_t fitParams[15];
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod)
+{
+  Color_t color[] = { kRed, kGreen+2, kBlue, kMagenta, kBlack };
+  Double_t histo_integral = h1->Integral();
 
-  // Setup components
   RooRealVar x("x", "x", xMinRange, xMaxRange);
-  RooDataHist dh("dh", "dh", x, Import(*hUSPminusLSB));
-  RooPlot* frame = x.frame(Title(hUSPminusLSB->GetTitle()));
+  RooDataHist dh("dh", "dh", x, Import(*h1));
+  RooPlot* frame = x.frame(Title(h1->GetTitle()));
   dh.plotOn(frame, DataError(RooAbsData::SumW2));
   //dh.statOn(frame,Layout(0.55,0.99,0.8));
 
@@ -92,9 +109,9 @@ void f0_fit(
   RooVoigtian sigVoig("sigVoig", "sigVoig", x, mF0, widthF0, sigmaF0, kFALSE);
 
   // residual bkg - exponential(e^alpha) + exponential(e^beta)
-  RooRealVar alpha("alpha", "alpha", -9.5, -17.5, -8.5);
+  RooRealVar alpha("alpha", "alpha", -9.5, -22., 0.);
   RooExponential bkg("bkg", "Background 1", x, alpha);
-  RooRealVar beta("beta", "beta", -0.8, -4., 25.);
+  RooRealVar beta("beta", "beta", -0.8, -22., 22.);
   RooExponential bkg2("bkg2", "Background 2", x, beta);
   RooRealVar exp1Frac("alphaFrac", "fraction of exp 1 in background", 0.5, 0., 1.);
   RooAddPdf sumbkg("sumbkg", "Background", RooArgList(bkg, bkg2), exp1Frac);
@@ -107,13 +124,15 @@ void f0_fit(
   RooAddPdf funcRelBW("model2", "sig+bgRelBW", RooArgList(sumbkg, sigRelBW), RooArgList(nsig, nbkg));
   RooAddPdf funcVoig("model3", "sig+bgVoig", RooArgList(sumbkg, sigVoig), RooArgList(nsig, nbkg));
 
+  Double_t fitParameters[15];
+
   //fit
   switch (fitMethod) {
   case 1: {
     funcBW.fitTo(dh /*, Extended(), Save()*/);
     funcBW.plotOn(frame);
     funcBW.paramOn(frame, Layout(0.4));
-    funcBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(3), Range(xMinRange, xMaxRange));
     funcBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
     funcBW.plotOn(frame, Components(sigBW), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r1 = funcBW.fitTo(dh, Save());
@@ -126,7 +145,7 @@ void f0_fit(
     funcRelBW.fitTo(dh /*, Extended(), Save()*/);
     funcRelBW.plotOn(frame);
     funcRelBW.paramOn(frame, Layout(0.4));
-    funcRelBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcRelBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(3), Range(xMinRange, xMaxRange));
     funcRelBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
     funcRelBW.plotOn(frame, Components(sigRelBW), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r2 = funcRelBW.fitTo(dh, Save());
@@ -139,7 +158,7 @@ void f0_fit(
     funcVoig.fitTo(dh /*, Extended(), Save()*/);
     funcVoig.plotOn(frame);
     funcVoig.paramOn(frame, Layout(0.4));
-    funcVoig.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(2), Range(xMinRange, xMaxRange));
+    funcVoig.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(3), Range(xMinRange, xMaxRange));
     funcVoig.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
     funcVoig.plotOn(frame, Components(sigVoig), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
     RooFitResult* r3 = funcVoig.fitTo(dh, Save());
@@ -147,8 +166,8 @@ void f0_fit(
     r3->correlationMatrix().Print();
     Double_t sigmaVoig = sigmaF0.getVal();
     Double_t sigmaVoigErr = sigmaF0.getError();
-    fitParams[13] = sigmaVoig;
-    fitParams[14] = sigmaVoigErr;
+    fitParameters[13] = sigmaVoig;
+    fitParameters[14] = sigmaVoigErr;
     //RooArgSet* params = funcVoig.getParameters(x);
     break;
   }
@@ -158,21 +177,6 @@ void f0_fit(
   }
   }
 
-  //output
-  gStyle->SetOptTitle(1);
-  gStyle->SetOptStat(0);
-  gStyle->SetOptFit(1111);
-
-  TCanvas* c = new TCanvas("c", "f0_fit", 1200, 600);
-  c->Divide(2, 1);
-
-  c->cd(1);
-  gPad->SetLeftMargin(0.2);
-  frame->GetYaxis()->SetTitleOffset(1);
-  frame->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
-  frame->Draw();
-
-  c->cd(2);
   Double_t signalMass = mF0.getVal();
   Double_t signalMassErr = mF0.getError();
   Double_t signalWidth = widthF0.getVal();
@@ -187,52 +191,45 @@ void f0_fit(
   Double_t betaVal = beta.getVal();
   Double_t betaValErr = beta.getError();
 
-  fitParams[0] = signalMass;
-  fitParams[1] = signalMassErr;
-  fitParams[2] = signalWidth;
-  fitParams[3] = signalWidthErr;
-  fitParams[4] = nSignal;
-  fitParams[5] = nSignalErr;
-  fitParams[6] = nBkg;
-  fitParams[7] = nBkgErr;
-  fitParams[8] = chi2;
-  fitParams[9] = alphaVal;
-  fitParams[10] = alphaValErr;
-  fitParams[11] = betaVal;
-  fitParams[12] = betaValErr;
-
-  TPaveText* pt = new TPaveText(.05, .1, .95, .8);
-  pt->SetLabel("Fit Parameters");
-  pt->SetBorderSize(1);
-  pt->SetFillColor(kWhite);
-  pt->SetTextFont(42);
-  pt->SetTextColor(kBlack);
-  pt->AddText(Form("#it{M}_{#pi#pi} (GeV/#it{c^{2}}) = %6.4f #pm %6.4f", fitParams[0], fitParams[1]));
-  pt->AddText(Form("#Gamma (GeV) = %6.4f #pm %6.4f", fitParams[2], fitParams[3]));
-  if (fitMethod == 3) {
-    pt->AddText(Form("#sigma_{Voigtian} = %6.4f #pm %6.4f", fitParams[13], fitParams[14]));
+  if(fitParameters){
+  fitParameters[0] = signalMass;
+  fitParameters[1] = signalMassErr;
+  fitParameters[2] = signalWidth;
+  fitParameters[3] = signalWidthErr;
+  fitParameters[4] = nSignal;
+  fitParameters[5] = nSignalErr;
+  fitParameters[6] = nBkg;
+  fitParameters[7] = nBkgErr;
+  fitParameters[8] = chi2;
+  fitParameters[9] = alphaVal;
+  fitParameters[10] = alphaValErr;
+  fitParameters[11] = betaVal;
+  fitParameters[12] = betaValErr;
   }
-  pt->AddText(Form("N_{sig} =  %8.0f #pm %6.0f \n", fitParams[4], fitParams[5]));
-  pt->AddText(Form("N_{bkg} = %8.0f #pm %6.0f \n", fitParams[6], fitParams[7]));
-  pt->AddText(Form("#it{#alpha} = %6.4f #pm %6.4f", fitParams[9], fitParams[10]));
-  pt->AddText(Form("#it{#beta} = %6.4f #pm %6.4f", fitParams[11], fitParams[12]));
-  pt->AddText(Form("#it{#chi}^{2} = %6.4f", fitParams[8]));
-  pt->Draw();
 
-  /*TH2F* hMvsPt = new TH2F("hMVsPt", "f_{0} mass; p_{T} (GeV/#it{c}); M (GeV/#it{c^{2}})", 400, iMinBinPt, iMaxBinPt, 400, xMinRange, xMaxRange);
-  TH1F* hWidthVsPt = new TH1F("hWidthVsPt", "f_{0} width; p_{T} (GeV/#it{c}); #Gamma (GeV)", 400, iMinBinPt, iMaxBinPt);
-  TH1F* hSigVsPt = new TH1F("hSigVsPt", "f_{0} raw yield; p_{T} (GeV/#it{c}); raw yield, dN/dp_{T}", 400, iMinBinPt, iMaxBinPt);
-  TH1F* hSigmaVoigVsPt = new TH1F("hSigmaVoigVsPt", "f_{0} sigma Voigtian; p_{T} (GeV/#it{c}); ", 400, iMinBinPt, iMaxBinPt);
+  return frame;
+}
 
-  hMvsPt->SetBinContent(iMaxBinPt,fitParams[0]);
-  hMvsPt->SetBinError(iMaxBinPt,fitParams[1]);
-
-  TCanvas* c2 = new TCanvas("c2", "c2", 1200, 1200);
-  c2->Divide(2, 2);
-  c2->cd(1); hMvsPt->Draw("hist");
-  c2->cd(2); hWidthVsPt->Draw();
-  c2->cd(3); hSigVsPt->Draw();
-  c2->cd(4); hSigmaVoigVsPt->Draw();*/
-
-  return;
+TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2)
+{
+  TPaveText * text = new TPaveText(x1, y1, x2, y2);
+  text->SetLabel("Fit Parameters");
+  text->SetBorderSize(1);
+  text->SetTextAlign(21);
+  text->SetFillColor(kWhite);
+  text->SetTextFont(42);
+  text->SetTextColor(kBlack);
+  text->SetTextSize(0.07);
+  text->AddText("ciao");
+  /*text->AddText(Form("#it{M}_{#pi#pi} (GeV/#it{c^{2}}) = %6.4f #pm %6.4f", fitParameters[0], fitParameters[1]));
+  text->AddText(Form("#Gamma (GeV) = %6.4f #pm %6.4f", fitParameters[2], fitParameters[3]));
+  if (fitMethod == 3) {
+    text->AddText(Form("#sigma_{Voigtian} = %6.4f #pm %6.4f", fitParameters[13], fitParameters[14]));
+  }
+  text->AddText(Form("N_{sig} =  %8.0f #pm %6.0f \n", fitParameters[4], fitParameters[5]));
+  text->AddText(Form("N_{bkg} = %8.0f #pm %6.0f \n", fitParameters[6], fitParameters[7]));
+  text->AddText(Form("#it{#alpha} = %6.4f #pm %6.4f", fitParameters[9], fitParameters[10]));
+  text->AddText(Form("#it{#beta} = %6.4f #pm %6.4f", fitParameters[11], fitParameters[12]));
+  text->AddText(Form("#it{#chi}^{2} = %6.4f", fitParameters[8]));*/
+  return text;
 }
