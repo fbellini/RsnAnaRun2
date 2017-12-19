@@ -24,7 +24,7 @@ using namespace RooStats;
 RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t * fitParameters);
 TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t * fitParameters);
 
-void f0_fit(
+void f0_fit2(
     TString inputFile = "bgSubtraction.root",
     Double_t xMinRange = 0.8,
     Double_t xMaxRange = 1.2,
@@ -102,13 +102,13 @@ void f0_fit(
       hSigmaVoigVsPt->SetBinContent(iMaxBinPt,fitParameters[13]);
       hSigmaVoigVsPt->SetBinError(iMaxBinPt,fitParameters[14]);
     }
+    TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
+    c_histos->Divide(2, 2);
+    c_histos->cd(1); hMvsPt->Draw("hist");
+    c_histos->cd(2); hWidthVsPt->Draw("hist");
+    c_histos->cd(3); hSigVsPt->Draw("hist");
+    c_histos->cd(4); hSigmaVoigVsPt->Draw("hist");
   }
-  TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
-  c_histos->Divide(2, 2);
-  c_histos->cd(1); hMvsPt->Draw("hist");
-  c_histos->cd(2); hWidthVsPt->Draw("hist");
-  c_histos->cd(3); hSigVsPt->Draw("hist");
-  c_histos->cd(4); hSigmaVoigVsPt->Draw("hist");
   return;
 }
 
@@ -255,6 +255,7 @@ TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, F
   text->SetTextFont(42);
   text->SetTextColor(kBlack);
   text->SetTextSize(0.07);
+  text->AddText("                       ");
   text->AddText(Form("#it{M}_{#pi#pi} (GeV/#it{c^{2}}) = %6.4f #pm %6.4f", fitParameters[0], fitParameters[1]));
   text->AddText(Form("#Gamma (GeV) = %6.4f #pm %6.4f", fitParameters[2], fitParameters[3]));
   if (fitMethod == 3) {
