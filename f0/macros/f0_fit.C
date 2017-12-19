@@ -21,14 +21,14 @@
 using namespace RooFit;
 using namespace RooStats;
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod);
-TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2);
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t * fitParameters);
+TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t * fitParameters);
 
 void f0_fit(
-    TString infilename = "bgSubtraction.root",
+    TString inputFile = "bgSubtraction.root",
     Double_t xMinRange = 0.8,
     Double_t xMaxRange = 1.2,
-    Int_t fitMethod = 2
+    Int_t fitMethod = 3
     /*fitMethod allows to chose the function to perform f0 fit
   list of matches
   1 -> Breit Wigner
@@ -45,27 +45,26 @@ void f0_fit(
 #endif
 
   //input file
-  if (!infilename) {
+  if (!inputFile) {
     Printf("ERROR: invalid file name.");
     return;
   }
-  TFile* fin = TFile::Open(infilename.Data());
+  TFile* fin = TFile::Open(inputFile.Data());
   if (!fin) {
     Printf("ERROR: invalid input file.");
     return;
   }
 
+  Double_t pT[11] = { 0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11. };
+  Double_t fitParameters[15];
+  TCanvas* canvas[10];
+  RooPlot* plot = 0x0;
+  TPaveText *textFit = 0x0;
   TH1D* hUSPminusLSB[10];
 
   for (Int_t i = 0; i < 10; i++) {
     hUSPminusLSB[i] = 0x0;
   }
-
-  Double_t pT[11] = { 0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11. };
-  TCanvas* canvas[10];
-  RooPlot* plotframe;
-  TPaveText *textFit = 0x0;
-  Double_t fitParameters[15];
 
   for (Int_t ibin = 0; ibin < 10; ibin++) {
     hUSPminusLSB[ibin] = (TH1D*)fin->Get(Form("USP-LSBGeoMean_%d", ibin));
@@ -74,22 +73,46 @@ void f0_fit(
       return;
     }
 
+    Int_t iMinBinPt = pT[ibin];
+    Int_t iMaxBinPt = pT[ibin + 1];
 
-    plotframe = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod);
-    textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8);
+    plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters);
+    textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8, fitParameters);
 
     canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
     canvas[ibin]->Divide(2, 1);
     canvas[ibin]->cd(1);
-    plotframe->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
-    plotframe->Draw("e");
+    plot->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
+    plot->Draw("e");
     canvas[ibin]->cd(2);
     textFit->Draw();
+
+    TH2F* hMvsPt = new TH2F("hMVsPt", "f_{0} mass; p_{T} (GeV/#it{c}); M (GeV/#it{c^{2}})", 400, iMinBinPt, iMaxBinPt, 400, xMinRange, xMaxRange);
+    TH2F* hWidthVsPt = new TH2F("hWidthVsPt", "f_{0} width; p_{T} (GeV/#it{c}); #Gamma (GeV)", 400, iMinBinPt, iMaxBinPt, 400, 0., 100.);
+    TH2F* hSigVsPt = new TH2F("hSigVsPt", "f_{0} raw yield; p_{T} (GeV/#it{c}); raw yield, dN/dp_{T}", 400, iMinBinPt, iMaxBinPt, 400, 0., 1000000.);
+    TH2F* hSigmaVoigVsPt = new TH2F("hSigmaVoigVsPt", "f_{0} sigma Voigtian; p_{T} (GeV/#it{c}); ", 400, iMinBinPt, iMaxBinPt, 400, 0., 0.5);
+
+    hMvsPt->SetBinContent(iMaxBinPt,fitParameters[0]);
+    hMvsPt->SetBinError(iMaxBinPt,fitParameters[1]);
+    hWidthVsPt->SetBinContent(iMaxBinPt,fitParameters[2]);
+    hWidthVsPt->SetBinError(iMaxBinPt,fitParameters[3]);
+    hSigVsPt->SetBinContent(iMaxBinPt,fitParameters[4]);
+    hSigVsPt->SetBinError(iMaxBinPt,fitParameters[5]);
+    if(fitMethod==3){
+      hSigmaVoigVsPt->SetBinContent(iMaxBinPt,fitParameters[13]);
+      hSigmaVoigVsPt->SetBinError(iMaxBinPt,fitParameters[14]);
+    }
   }
+  TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
+  c_histos->Divide(2, 2);
+  c_histos->cd(1); hMvsPt->Draw("hist");
+  c_histos->cd(2); hWidthVsPt->Draw("hist");
+  c_histos->cd(3); hSigVsPt->Draw("hist");
+  c_histos->cd(4); hSigmaVoigVsPt->Draw("hist");
   return;
 }
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod)
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t * fitParameters)
 {
   Color_t color[] = { kRed, kGreen+2, kBlue, kMagenta, kBlack };
   Double_t histo_integral = h1->Integral();
@@ -123,8 +146,6 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod)
   RooAddPdf funcBW("model1", "sig+bgBW", RooArgList(sumbkg, sigBW), RooArgList(nsig, nbkg));
   RooAddPdf funcRelBW("model2", "sig+bgRelBW", RooArgList(sumbkg, sigRelBW), RooArgList(nsig, nbkg));
   RooAddPdf funcVoig("model3", "sig+bgVoig", RooArgList(sumbkg, sigVoig), RooArgList(nsig, nbkg));
-
-  Double_t fitParameters[15];
 
   //fit
   switch (fitMethod) {
@@ -191,7 +212,6 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod)
   Double_t betaVal = beta.getVal();
   Double_t betaValErr = beta.getError();
 
-  if(fitParameters){
   fitParameters[0] = signalMass;
   fitParameters[1] = signalMassErr;
   fitParameters[2] = signalWidth;
@@ -205,12 +225,27 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod)
   fitParameters[10] = alphaValErr;
   fitParameters[11] = betaVal;
   fitParameters[12] = betaValErr;
+
+  ofstream fitOutput;
+  fitOutput.open("fitOutput.txt", std::ios_base::app);
+  fitOutput<<"Fit parameters"<<endl;
+  fitOutput<<"#it{M}_{#pi#pi} (GeV/#it{c^{2}} = "<<"\t"<<fitParameters[0]<<"\t #pm\t"<<fitParameters[1]<<endl;
+  fitOutput<<"#Gamma (GeV) = "<<"\t"<<fitParameters[2]<<"\t #pm\t"<<fitParameters[3]<<endl;
+  if(fitMethod==3){
+  fitOutput<<"#sigma_Voigtian = "<<"\t"<<fitParameters[13]<<"\t #pm\t"<<fitParameters[14]<<endl;
   }
+  fitOutput<<"N_sig = "<<"\t"<<fitParameters[4]<<"\t #pm\t"<<fitParameters[5]<<endl;
+  fitOutput<<"N_bkg = "<<"\t"<<fitParameters[6]<<"\t #pm\t"<<fitParameters[7]<<endl;
+  fitOutput<<"#alpha = "<<"\t"<<fitParameters[9]<<"\t #pm\t"<<fitParameters[10]<<endl;
+  fitOutput<<"#alpha = "<<"\t"<<fitParameters[11]<<"\t #pm\t"<<fitParameters[12]<<endl;
+  fitOutput<<"#chi^2 = "<<"\t"<<fitParameters[8]<<endl;
+  fitOutput<<"------------------------------------------------------------------------------------"<<endl;
+  fitOutput.close();
 
   return frame;
 }
 
-TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2)
+TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t * fitParameters)
 {
   TPaveText * text = new TPaveText(x1, y1, x2, y2);
   text->SetLabel("Fit Parameters");
@@ -220,8 +255,7 @@ TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, F
   text->SetTextFont(42);
   text->SetTextColor(kBlack);
   text->SetTextSize(0.07);
-  text->AddText("ciao");
-  /*text->AddText(Form("#it{M}_{#pi#pi} (GeV/#it{c^{2}}) = %6.4f #pm %6.4f", fitParameters[0], fitParameters[1]));
+  text->AddText(Form("#it{M}_{#pi#pi} (GeV/#it{c^{2}}) = %6.4f #pm %6.4f", fitParameters[0], fitParameters[1]));
   text->AddText(Form("#Gamma (GeV) = %6.4f #pm %6.4f", fitParameters[2], fitParameters[3]));
   if (fitMethod == 3) {
     text->AddText(Form("#sigma_{Voigtian} = %6.4f #pm %6.4f", fitParameters[13], fitParameters[14]));
@@ -230,6 +264,6 @@ TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, F
   text->AddText(Form("N_{bkg} = %8.0f #pm %6.0f \n", fitParameters[6], fitParameters[7]));
   text->AddText(Form("#it{#alpha} = %6.4f #pm %6.4f", fitParameters[9], fitParameters[10]));
   text->AddText(Form("#it{#beta} = %6.4f #pm %6.4f", fitParameters[11], fitParameters[12]));
-  text->AddText(Form("#it{#chi}^{2} = %6.4f", fitParameters[8]));*/
+  text->AddText(Form("#it{#chi}^{2} = %6.4f", fitParameters[8]));
   return text;
 }
