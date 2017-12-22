@@ -65,7 +65,7 @@ void f0_bkg(Int_t rebinVar = 2 /*rebinning factor*/,
   Double_t pT[11] = {0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11.};
 
   Int_t   npT  = sizeof(pT) / sizeof(pT[0]) - 1;
-  TAxis *ptBins = new TAxis(npT, pT);
+  TAxis *bins = new TAxis(npT, pT);
 
   TH1D* hLikePPpy[10];
   TH1D* hLikeMMpy[10];
@@ -255,7 +255,7 @@ void f0_bkg(Int_t rebinVar = 2 /*rebinning factor*/,
 
     /* writing output on file.root*/
     fout->cd();
-    ptBins->Write(Form("ptBins_%d", ibin));
+    bins->Write("bins");
     hUSPpy[ibin]->Write(Form("USP_%d", ibin));
     hLikeMMpy[ibin]->Write(Form("LikeMM_%d", ibin));
     hLikePPpy[ibin]->Write(Form("LikePP_%d", ibin));
