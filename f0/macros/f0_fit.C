@@ -101,14 +101,15 @@ void f0_fit(
     Int_t iMinBinPt = pT[ibin];
     Int_t iMaxBinPt = pT[ibin + 1];
 
-    //reset minuit status array
-    for (Int_t k=0;k<4;k++) {fitStatus[k]=-1;}
+    for (Int_t k=0;k<4;k++) {
+      fitStatus[k]=1;
+    }
 
     plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters);
 
     if (isFitFailed(fitStatus)) {
       for (Int_t j=0;j<5;j++){
-        Printf("Fit failed, output not saved!");
+        Printf("Fit failed!");
       }
       //continue;
     }
@@ -314,7 +315,7 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
 Bool_t isFitFailed(Int_t *fitStatus)
 {
   if (!fitStatus){
-    Printf("Invalid array passed to checker.");
+    Printf("Invalid array.");
     return kTRUE;
   }
 }
