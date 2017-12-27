@@ -112,7 +112,7 @@ void f0_bkg(Int_t rebinVar = 5 /*rebinning factor*/,
     hLSBnMEBRatio[i] = 0x0;
   }
 
-  TFile* fout = TFile::Open("bgSubtraction.root", "RECREATE");
+  TFile *fout = TFile::Open(Form("bgSubtraction_%s.root", outputDir.Data()), "RECREATE");
 
   /* canvas to print histograms for each bin in pT*/
   TCanvas* canvas[10];
