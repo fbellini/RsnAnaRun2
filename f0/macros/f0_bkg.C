@@ -30,21 +30,22 @@ TH1D* summa(TH1D* h1, TH1D* h2);
 TH1D* geoM(TH1D* h1, TH1D* h2);
 TH1D* normM(TH1D* h1, TH1D* h2, Int_t method);
 
-void f0_bkg(Int_t rebinVar = 2 /*rebinning factor*/,
-                  Double_t chosenPt = -1 /*chosenPt allows to chose the pT bin, if chosenPt = -1 you cover all pT bins
-                  list of matches
-                  0.5 < pT < 1.0 -> chosenPt=0; 1.0 < pT < 1.5 -> chosenPt=1; 1.5 < pT < 2.0 -> chosenPt=2;
-                  2.0 < pT < 2.5 -> chosenPt=3; 2.5 < pT < 3.0 -> chosenPt=4; 3.0 < pT < 4.0 -> chosenPt=5;
-                  4.0 < pT < 5.0 -> chosenPt=6; 5.0 < pT < 7.0 -> chosenPt=7; 7.0 < pT < 9.0 -> chosenPt=8;
-                  9.0 < pT < 11.0 -> chosenPt=9 */,
-                  Bool_t isMC = kFALSE
+void f0_bkg(Int_t rebinVar = 5 /*rebinning factor*/,
+            Double_t chosenPt = -1 /*chosenPt allows to chose the pT bin, if chosenPt = -1 you cover all pT bins
+            list of matches
+            0.5 < pT < 1.0 -> chosenPt=0; 1.0 < pT < 1.5 -> chosenPt=1; 1.5 < pT < 2.0 -> chosenPt=2;
+            2.0 < pT < 2.5 -> chosenPt=3; 2.5 < pT < 3.0 -> chosenPt=4; 3.0 < pT < 4.0 -> chosenPt=5;
+            4.0 < pT < 5.0 -> chosenPt=6; 5.0 < pT < 7.0 -> chosenPt=7; 7.0 < pT < 9.0 -> chosenPt=8;
+            9.0 < pT < 11.0 -> chosenPt=9 */,
+            Bool_t isMC = kFALSE,
+            TString outputDir = "RsnOut_f0_2sTOF"
 )
 {
   TGaxis::SetMaxDigits(3);
 
   /* getting histos from root file */
   TFile* file = TFile::Open(Form("AnalysisResults%s.root", isMC ? "MC" : ""));
-  TList* list = (TList*)file->Get("RsnOut_f0");
+  TList* list = (TList*)file->Get(outputDir);
   //list->ls();
   TH2F* hUSP = (TH2F*)list->FindObject("RsnTaskF0_f0_UnlikePM"); //same event unlike sign pairs
   TH2F* hLikePP = (TH2F*)list->FindObject("RsnTaskF0_f0_LikePP"); //like sign pairs: (pi+)+(pi+)
