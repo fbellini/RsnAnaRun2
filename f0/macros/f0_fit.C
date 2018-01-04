@@ -24,7 +24,7 @@ using namespace RooStats;
 RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2);
 Bool_t isFitFailed(Int_t* fitStatus);
 RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
-RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
+//RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
 TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t* fitParameters);
 
 void f0_fit(
@@ -385,14 +385,13 @@ RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, B
   return result;
 }
 
-RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0)
+/*RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0)
 {
   if (!nll)
     return 0x0;
   RooFitResult *temp, *result;
-  RooRealVar* offset = new RooRealVar("offset", "offset", -95633288.84);
-  ;
-  RooAbsReal* L = new RooFormulaVar("L", "L", "@0-@1", RooArgSet(*nll, *offset));
+  RooRealVar* offset = new RooRealVar("offset", "offset", -10000000);
+  RooAbsReal* L = new RooFormulaVar("L", "L", "L", RooArgSet(*nll, *offset));
   RooMinuit* model1 = new RooMinuit(*L);
   //model1->setPrintLevel(4);
   model1->setStrategy(1);
@@ -422,7 +421,7 @@ RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, 
 
   result = (RooFitResult*)model1->save();
   return result;
-}
+}*/
 
 TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t* fitParameters)
 {
