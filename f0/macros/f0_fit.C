@@ -21,16 +21,21 @@
 using namespace RooFit;
 using namespace RooStats;
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters);
-Bool_t isFitFailed(Int_t *fitStatus);
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2);
+Bool_t isFitFailed(Int_t* fitStatus);
+RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
+RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
 TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t* fitParameters);
 
-
 void f0_fit(
-    TString inputFile = "bgSubtraction.root",
+    //TString inputFile = "bgSubtraction_RsnOut_f0_2sTOF.root",
+    TString inputFile = "bgSubtraction_RsnOut_f0_2sTPC_3sTOFveto.root",
+    //String inputFile = "bgSubtraction_RsnOut_f0_3sTPC_3sTOFveto.root",
+    //TString inputFile = "bgSubtraction_RsnOut_f0_2sTPC_4sTOFveto.root",
+    Bool_t useChi2 = kTRUE,
     Double_t xMinRange = 0.8,
-    Double_t xMaxRange = 1.2,
-    Int_t fitMethod = 2
+    Double_t xMaxRange = 1.3,
+    Int_t fitMethod = 1
     /*fitMethod allows to chose the function to perform f0 fit
   list of matches
   1 -> Breit Wigner
@@ -43,17 +48,17 @@ void f0_fit(
 
 #ifdef __CINT__
   gROOT->ProcessLineSync(".x RooRelBW.cxx+");
-  gROOT->ProcessLineSync(".x RooFlatte.cxx+");
+  //gROOT->ProcessLineSync(".x RooFlatte.cxx+");
 #endif
 
   //input file
   if (!inputFile) {
-    Printf("ERROR: invalid file name.");
+    Printf("Invalid file name.");
     return;
   }
   TFile* fin = TFile::Open(inputFile.Data());
   if (!fin) {
-    Printf("ERROR: invalid input file.");
+    Printf("Invalid input file.");
     return;
   }
 
@@ -62,34 +67,36 @@ void f0_fit(
   RooPlot* plot = 0x0;
   TPaveText* textFit = 0x0;
   Double_t bWidth;
-  Double_t sigOverBkg = fitParameters[4]/fitParameters[6];
-  Double_t significance = fitParameters[4]/TMath::Sqrt(fitParameters[4]+fitParameters[6]);
+  Double_t sigOverBkg = fitParameters[4] / fitParameters[6];
+  Double_t significance = fitParameters[4] / TMath::Sqrt(fitParameters[4] + fitParameters[6]);
 
-  TAxis *bins = (TAxis*)fin->Get("bins");
+  TAxis* bins = (TAxis*)fin->Get("bins");
   Int_t numPt = bins->GetNbins();
 
-  const Int_t dimPt = numPt+1;
+  const Int_t dimPt = numPt + 1;
   Double_t pT[dimPt];
-  for (Int_t z=0; z<dimPt;z++){
-    pT[z]=bins->GetBinLowEdge(z+1);
+  for (Int_t z = 0; z < dimPt; z++) {
+    pT[z] = bins->GetBinLowEdge(z + 1);
   }
 
-  TFile* fout = TFile::Open("f0_fit.root", "RECREATE");
+  TFile* fout = TFile::Open("f0_fit_2sTPC_3sTOFveto.root", "RECREATE");
+  //TFile* fout = TFile::Open("f0_fit_3sTPC_3sTOFveto.root", "RECREATE");
+  //TFile* fout = TFile::Open("f0_fit_2sTPC_4sTOFveto.root", "RECREATE");
+  //TFile* fout = TFile::Open("f0_fit_2sTOF.root", "RECREATE");
 
-  Int_t fitStatus[4]={1,1,1,1};
+  Int_t fitStatus[4] = { 1, 1, 1, 1 };
 
   TH1D* hUSPminusLSB[10];
   for (Int_t i = 0; i < 10; i++) {
     hUSPminusLSB[i] = 0x0;
   }
 
-  TH1F*hMvsPt=new TH1F("hMvsPt","f_{0} mass; p_{T} (GeV/#it{c}); M (GeV/#it{c^{2}})", numPt, pT);
+  TH1F* hMvsPt = new TH1F("hMvsPt", "f_{0} mass; p_{T} (GeV/#it{c}); M (GeV/#it{c^{2}})", numPt, pT);
   TH1F* hWidthVsPt = new TH1F("hWidthVsPt", "f_{0} width; p_{T} (GeV/#it{c}); #Gamma (GeV)", numPt, pT);
   TH1F* hSigVsPt = new TH1F("hSigVsPt", "f_{0} raw yield; p_{T} (GeV/#it{c}); raw yield, dN/dp_{T}", numPt, pT);
   TH1F* hSigmaVoigVsPt = new TH1F("hSigmaVoigVsPt", "f_{0} #sigma_{Voigtian}; p_{T} (GeV/#it{c}); #sigma_{Voigtian}", numPt, pT);
   TH1F* hSigOverBkgVsPt = new TH1F("hSigOverBkgVsPt", "f_{0} sig/bkg; p_{T} (GeV/#it{c}); S/B", numPt, pT);
   TH1F* hSignificanceVsPt = new TH1F("hSignificanceVsPt", "f_{0} sig/#sqrt(sig+bkg); p_{T} (GeV/#it{c}); S/#sqrt(S+B)", numPt, pT);
-
 
   for (Int_t ibin = 0; ibin < 10; ibin++) {
     hUSPminusLSB[ibin] = (TH1D*)fin->Get(Form("USP-LSBGeoMean_%d", ibin));
@@ -101,14 +108,14 @@ void f0_fit(
     Int_t iMinBinPt = pT[ibin];
     Int_t iMaxBinPt = pT[ibin + 1];
 
-    for (Int_t k=0;k<4;k++) {
-      fitStatus[k]=1;
+    for (Int_t k = 0; k < 4; k++) {
+      fitStatus[k] = 1;
     }
 
-    plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters);
+    plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters, kTRUE);
 
     if (isFitFailed(fitStatus)) {
-      for (Int_t j=0;j<5;j++){
+      for (Int_t j = 0; j < 5; j++) {
         Printf("Fit failed!");
       }
       //continue;
@@ -124,21 +131,21 @@ void f0_fit(
     canvas[ibin]->cd(2);
     textFit->Draw();
 
-    hMvsPt->SetBinContent(pT[ibin+1], fitParameters[0]);
-    hMvsPt->SetBinError(pT[ibin+1], fitParameters[1]);
-    hWidthVsPt->SetBinContent(pT[ibin+1], fitParameters[2]);
-    hWidthVsPt->SetBinError(pT[ibin+1], fitParameters[3]);
-    bWidth = bins->GetBinWidth(ibin+1);
-    hSigVsPt->SetBinContent(pT[ibin+1], fitParameters[4]/bWidth);
-    hSigVsPt->SetBinError(pT[ibin+1], fitParameters[5]/bWidth);
+    hMvsPt->SetBinContent(pT[ibin + 1], fitParameters[0]);
+    hMvsPt->SetBinError(pT[ibin + 1], fitParameters[1]);
+    hWidthVsPt->SetBinContent(pT[ibin + 1], fitParameters[2]);
+    hWidthVsPt->SetBinError(pT[ibin + 1], fitParameters[3]);
+    bWidth = bins->GetBinWidth(ibin + 1);
+    hSigVsPt->SetBinContent(pT[ibin + 1], fitParameters[4] / bWidth);
+    hSigVsPt->SetBinError(pT[ibin + 1], fitParameters[5] / bWidth);
     if (fitMethod == 3) {
-      hSigmaVoigVsPt->SetBinContent(pT[ibin+1], fitParameters[13]);
-      hSigmaVoigVsPt->SetBinError(pT[ibin+1], fitParameters[14]);
+      hSigmaVoigVsPt->SetBinContent(pT[ibin + 1], fitParameters[13]);
+      hSigmaVoigVsPt->SetBinError(pT[ibin + 1], fitParameters[14]);
     }
-    hSigOverBkgVsPt->SetBinContent(pT[ibin+1], sigOverBkg);
-    hSigOverBkgVsPt->SetBinError(pT[ibin+1], sigOverBkg);
-    hSignificanceVsPt->SetBinContent(pT[ibin+1], significance);
-    hSignificanceVsPt->SetBinError(pT[ibin+1], significance);
+    hSigOverBkgVsPt->SetBinContent(pT[ibin + 1], sigOverBkg);
+    hSigOverBkgVsPt->SetBinError(pT[ibin + 1], sigOverBkg);
+    hSignificanceVsPt->SetBinContent(pT[ibin + 1], significance);
+    hSignificanceVsPt->SetBinError(pT[ibin + 1], significance);
 
     TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
     c_histos->Divide(3, 2);
@@ -168,11 +175,10 @@ void f0_fit(
   return;
 }
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters)
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2)
 {
   Color_t color[] = { kRed, kGreen + 2, kBlue, kMagenta, kBlack };
   Double_t histo_integral = h1->Integral();
-
   RooRealVar x("x", "x", xMinRange, xMaxRange);
   RooDataHist dh("dh", "dh", x, Import(*h1));
   RooPlot* frame = x.frame(Title(h1->GetTitle()));
@@ -182,7 +188,7 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   // f0 signal
   RooRealVar mF0("mF0", "mF0", 0.99, 0.95, 1.1); //f0(980) invariant mass = 990 /pm 20 MeV
   RooRealVar sigmaF0("sigmaF0", "sigmaF0", 0.02, 0., 0.1);
-  RooRealVar widthF0("widthF0", "widthF0", 0.04, 0.01, 0.1);
+  RooRealVar widthF0("widthF0", "widthF0", 0.05, 0.01, 0.1);
   RooBreitWigner sigBW("sigBW", "sigBW", x, mF0, widthF0);
   RooRelBW sigRelBW("relBW", "relBW", x, mF0, widthF0);
   RooVoigtian sigVoig("sigVoig", "sigVoig", x, mF0, widthF0, sigmaF0, kFALSE);
@@ -203,16 +209,30 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   RooAddPdf funcRelBW("model2", "sig+bgRelBW", RooArgList(sumbkg, sigRelBW), RooArgList(nsig, nbkg));
   RooAddPdf funcVoig("model3", "sig+bgVoig", RooArgList(sumbkg, sigVoig), RooArgList(nsig, nbkg));
 
+  RooFitResult* r1;
+  Int_t fitStatus[4] = { 1, 1, 1, 1 };
+  Bool_t improve = kFALSE;
+  Bool_t minos = kTRUE;
+
   //fit
   switch (fitMethod) {
   case 1: {
-    funcBW.fitTo(dh /*, Extended(), Save()*/);
+    RooChi2Var* chi2Var = new RooChi2Var("chi2Var", "chi2Var", funcBW, dh, kTRUE);
+    RooNLLVar* nll = new RooNLLVar("nll", "nll", funcBW, dh);
+    if (useChi2)
+      r1 = (RooFitResult*)fitChi2(chi2Var, fitStatus, minos, improve);
+    else
+      r1 = (RooFitResult*)fitLikelihood(nll, fitStatus, minos, improve);
+    //funcBW.fitTo(dh /*, Extended(), Save()*/);
+    //RooNLLVar *nll = new RooNLLVar("nll","-log(L)",funcBW,dh,Extended(kTRUE),Verbose(kTRUE), NumCPU(1));
+    //RooChi2Var *chi2 = new RooChi2Var("chi2","chi2",funcBW,dh,Extended(kTRUE),Verbose(kTRUE), NumCPU(1));
+    //RooMinuit* m = new RooMinuit(*chi2);
     funcBW.plotOn(frame);
     funcBW.paramOn(frame, Layout(0.4));
     funcBW.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(3), Range(xMinRange, xMaxRange));
     funcBW.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(2), Range(xMinRange, xMaxRange));
     funcBW.plotOn(frame, Components(sigBW), LineStyle(kDashed), LineColor(color[2]), LineWidth(2), Range(xMinRange, xMaxRange));
-    RooFitResult* r1 = funcBW.fitTo(dh, Save());
+    /*RooFitResult* */ r1 = funcBW.fitTo(dh, Save());
     r1->Print("v");
     r1->correlationMatrix().Print();
     //RooArgSet* params = funcBW.getParameters(x);
@@ -253,6 +273,9 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
     break;
   }
   }
+
+  //chi2=frame->chiSquare("funcBW", "dh", 3);
+  //parametri del fit + stato del fit
 
   Double_t signalMass = mF0.getVal();
   Double_t signalMassErr = mF0.getError();
@@ -311,13 +334,94 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   return frame;
 }
 
-
-Bool_t isFitFailed(Int_t *fitStatus)
+Bool_t isFitFailed(Int_t* fitStatus)
 {
-  if (!fitStatus){
+  if (!fitStatus) {
     Printf("Invalid array.");
     return kTRUE;
   }
+  for (Int_t o = 0; o < 4; o++) {
+    if (fitStatus[o] == 4) {
+      Printf("Minuit status = 4. Fit failed");
+      return kTRUE;
+    } else if (fitStatus[o] == -1)
+      Printf("Minuit status unset.");
+    else if (fitStatus[o] != 0)
+      Printf("Minuit status != 0 or !=4.");
+  }
+  return 0;
+}
+
+RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0)
+{
+  if (!chi2Var)
+    return 0x0;
+  RooFitResult *temp, *result;
+  RooMinuit* model2 = new RooMinuit(*chi2Var);
+  model2->setStrategy(2);
+  model2->migrad();
+  temp = (RooFitResult*)model2->save();
+  fitStatus[0] = temp->status();
+  model2->hesse();
+  temp = (RooFitResult*)model2->save();
+  fitStatus[1] = temp->status();
+
+  if (improve) {
+    model2->improve();
+    temp = (RooFitResult*)model2->save();
+    fitStatus[2] = temp->status();
+  } else
+    fitStatus[2] = 0;
+
+  if (minos) {
+    model2->minos();
+    temp = (RooFitResult*)model2->save();
+    fitStatus[3] = temp->status();
+  } else
+    fitStatus[3] = 0;
+
+  result = (RooFitResult*)model2->save();
+  result->Print("v");
+  return result;
+}
+
+RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0)
+{
+  if (!nll)
+    return 0x0;
+  RooFitResult *temp, *result;
+  RooRealVar* offset = new RooRealVar("offset", "offset", -95633288.84);
+  ;
+  RooAbsReal* L = new RooFormulaVar("L", "L", "@0-@1", RooArgSet(*nll, *offset));
+  RooMinuit* model1 = new RooMinuit(*L);
+  //model1->setPrintLevel(4);
+  model1->setStrategy(1);
+  model1->setEps(1e-16);
+  model1->migrad();
+  model1->setStrategy(2);
+  model1->migrad();
+  temp = (RooFitResult*)model1->save();
+  fitStatus[0] = temp->status();
+  model1->hesse();
+  temp = (RooFitResult*)model1->save();
+  fitStatus[1] = temp->status();
+
+  if (improve) {
+    model1->improve();
+    temp = (RooFitResult*)model1->save();
+    fitStatus[2] = temp->status();
+  } else
+    fitStatus[2] = 0;
+
+  if (minos) {
+    model1->minos();
+    temp = (RooFitResult*)model1->save();
+    fitStatus[3] = temp->status();
+  } else
+    fitStatus[3] = 0;
+
+  result = (RooFitResult*)model1->save();
+  return result;
 }
 
 TPaveText* textFitResults(Int_t fitMethod, Float_t x1, Float_t y1, Float_t x2, Float_t y2, Double_t* fitParameters)
