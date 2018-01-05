@@ -116,7 +116,8 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    // ------------------------------------------------------
    // CONFIG ANALYSIS
    // ------------------------------------------------------
-   gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
+   //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
+   gROOT->LoadMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C");
    if (!ConfigPhiXeXe(task, isMC, "", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor)) return 0x0;
    // Bool_t      useGeoCutsPbPb2015 = kFALSE;
 

@@ -1,6 +1,19 @@
 /* Author: fbellini@cern.ch 
    Date of creation: 12.11.2017
 */
+#if !defined (CINT) || defined (CLING)
+
+#include "AliMultiInputEventHandler.h"
+#include "AliMCEventHandler.h"
+#include "AliESDInputHandler.h"
+#include "AliAODInputHandler.h"
+#include "AliTaskCDBconnect.h"
+#include "AliPhysicsSelectionTask.h"
+#include "AliAnalysisDataContainer.h"
+#include "AliMultSelectionTask.h"
+#include "AliRsnMiniAnalysisTask.h"
+
+#endif
 
 TString AnalysisSetup(const char *options,
 		      const char *outputFileName,
@@ -30,9 +43,11 @@ TString AnalysisSetup(const char *options,
     AliESDInputHandler *esdHandler = new AliESDInputHandler();
     mgr->SetInputEventHandler(esdHandler);
     esdHandler->SetNeedField(); //needed to load magnetic field configuration
+    
     if (isMC) {
       ::Info("AnalysisSetup", "Creating MC handler");
-      AliMCEventHandler *mcHandler  = new AliMCEventHandler();
+      AliMCEventHandler *mcHandler = new AliMCEventHandler();
+      mcHandler->SetReadTR(false);
       mgr->SetMCtruthEventHandler(mcHandler);
     }
   } else {
@@ -41,7 +56,42 @@ TString AnalysisSetup(const char *options,
     AliAODInputHandler *aodHandler = new AliAODInputHandler();
     mgr->SetInputEventHandler(aodHandler);
   }
+
+#if !defined (CINT) || defined (CLING)
+
+  gInterpreter->LoadMacro("$ALICE_PHYSICS/PWGPP/PilotTrain/AddTaskCDBconnect.C+");
+  AliTaskCDBconnect *taskCDB = AddTaskCDBconnect("raw://");
+  if (!taskCDB) return;
   
+  gInterpreter->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C+");
+  AliPhysicsSelectionTask* physSelTask = AddTaskPhysicsSelection(isMC);
+									      
+  AliAnalysisDataContainer *cstatsout = (AliAnalysisDataContainer*)mgr->GetOutputs()->FindObject("cstatsout");
+  cstatsout->SetFileName("EventStatPhysSel.root");
+  
+  gInterpreter->LoadMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C+");
+  AliMultSelectionTask* taskMult = 0X0;
+  if (enaMultSel) {
+    taskMult = reinterpret_cast<AliMultSelectionTask*>(gInterpreter->ExecuteMacro(AddTaskMultSelection())); //kTRUE, "B") to run in calibration mode
+    if (isMC) taskMult->SetUseDefaultMCCalib(isMC);
+  }
+  
+  AliPIDResponse *pidtask = reinterpret_cast<AliPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C(isMC)"));
+  AliAnalysisTask * pidRespTask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro(AddTaskPIDResponse(isMC)));  //1 = MC
+
+  gInterpreter->LoadMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C");
+  AliAnalysisTask* pidQAtask = 0x0;
+  if (enableMon) pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro(AddTaskPIDqa()));
+  
+  gInterpreter->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/qa/AddTaskRsnQA.C");
+  AliRsnMiniAnalysisTask * rsnQaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro(AddTaskRsnQA(isMC, kFALSE, "V0M", AliVEvent::kINT7, "phi", 1, 0)));
+   
+  // gInterpreter->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddTaskPhiXeXe.C");
+  gInterpreter->LoadMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C");
+  AliRsnMiniAnalysisTask * rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro(AddTaskPhiXeXe(isMC)));
+  
+#else
+
   // === CDB connection =============================================================
   // Check that the correct trigger class is selected!!! USER DEFINED!!! 
   gROOT->LoadMacro("$ALICE_PHYSICS/PWGPP/PilotTrain/AddTaskCDBconnect.C");
@@ -91,8 +141,10 @@ TString AnalysisSetup(const char *options,
   AliRsnMiniAnalysisTask * rsnQaTask = AddTaskRsnQA(isMC, kFALSE, "V0M", AliVEvent::kINT7, "phi", 1, 0);
    
   // gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddTaskPhiXeXe.C");
-  gROOT->LoadMacro("$HOME/alice/resonances/phiXeXe/AddTaskPhiXeXe.C");
+  gROOT->LoadMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C");
   AliRsnMiniAnalysisTask * rsnAnaTask = AddTaskPhiXeXe(isMC);
+
+#endif
 
   ::Info("<<<<<<<<<<<<<<<<< TRAIN CONFIGURATION >>>>>>>>>>>>>>>>");
   ::Info("AnalysisSetup", "Common file name: %s", outputFileName);

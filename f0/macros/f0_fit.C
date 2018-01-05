@@ -21,7 +21,7 @@
 using namespace RooFit;
 using namespace RooStats;
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2);
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters = 0x0, Bool_t useChi2 = kTRUE, Int_t* fitStatus = 0x0);
 Bool_t isFitFailed(Int_t* fitStatus);
 RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
 //RooFitResult* fitLikelihood(RooNLLVar* nll, Int_t* fitStatus, Bool_t minos = 1, Bool_t improve = 0);
@@ -62,13 +62,9 @@ void f0_fit(
     return;
   }
 
-  Double_t fitParameters[17];
   TCanvas* canvas[10];
   RooPlot* plot = 0x0;
   TPaveText* textFit = 0x0;
-  Double_t bWidth;
-  Double_t sigOverBkg = fitParameters[4] / fitParameters[6];
-  Double_t significance = fitParameters[4] / TMath::Sqrt(fitParameters[4] + fitParameters[6]);
 
   TAxis* bins = (TAxis*)fin->Get("bins");
   Int_t numPt = bins->GetNbins();
@@ -84,13 +80,13 @@ void f0_fit(
   //TFile* fout = TFile::Open("f0_fit_2sTPC_4sTOFveto.root", "RECREATE");
   //TFile* fout = TFile::Open("f0_fit_2sTOF.root", "RECREATE");
 
-  Int_t fitStatus[4] = { 1, 1, 1, 1 };
-
+  //input histograms
   TH1D* hUSPminusLSB[10];
   for (Int_t i = 0; i < 10; i++) {
     hUSPminusLSB[i] = 0x0;
   }
 
+  //define histograms for fit parameters vs pt
   TH1F* hMvsPt = new TH1F("hMvsPt", "f_{0} mass; p_{T} (GeV/#it{c}); M (GeV/#it{c^{2}})", numPt, pT);
   TH1F* hWidthVsPt = new TH1F("hWidthVsPt", "f_{0} width; p_{T} (GeV/#it{c}); #Gamma (GeV)", numPt, pT);
   TH1F* hSigVsPt = new TH1F("hSigVsPt", "f_{0} raw yield; p_{T} (GeV/#it{c}); raw yield, dN/dp_{T}", numPt, pT);
@@ -98,7 +94,10 @@ void f0_fit(
   TH1F* hSigOverBkgVsPt = new TH1F("hSigOverBkgVsPt", "f_{0} sig/bkg; p_{T} (GeV/#it{c}); S/B", numPt, pT);
   TH1F* hSignificanceVsPt = new TH1F("hSignificanceVsPt", "f_{0} sig/#sqrt(sig+bkg); p_{T} (GeV/#it{c}); S/#sqrt(S+B)", numPt, pT);
 
+
+  //Loop on pt bins
   for (Int_t ibin = 0; ibin < 10; ibin++) {
+    
     hUSPminusLSB[ibin] = (TH1D*)fin->Get(Form("USP-LSBGeoMean_%d", ibin));
     if (!hUSPminusLSB[ibin]) {
       Printf("Input histogram error.");
@@ -107,75 +106,96 @@ void f0_fit(
 
     Int_t iMinBinPt = pT[ibin];
     Int_t iMaxBinPt = pT[ibin + 1];
+    
+    //define fit parameters and status flags
+    Double_t bWidth;
+    Double_t fitParameters[17];
+    for (Int_t ipar = 0; ipar < 17; ipar++) { fitParameters[ipar] = -1.0; }
+    Double_t sigOverBkg = -1.0; 
+    Double_t significance = -1.0; 
+    Int_t fitStatus[4] = { -1, -1, -1, -1};
+    
+    //run fit
+    plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters, kTRUE, fitStatus);
 
-    for (Int_t k = 0; k < 4; k++) {
-      fitStatus[k] = 1;
-    }
+    //check fit status and save fit output if fit succeeded
+    if (!isFitFailed(fitStatus)) {
+     
+      textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8, fitParameters);
 
-    plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters, kTRUE);
+      canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
+      canvas[ibin]->Divide(2, 1);
+      canvas[ibin]->cd(1);
+      plot->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
+      plot->Draw("e");
+      canvas[ibin]->cd(2);
+      textFit->Draw();
 
-    if (isFitFailed(fitStatus)) {
-      for (Int_t j = 0; j < 5; j++) {
-        Printf("Fit failed!");
+      //protection: check that fitParameters exists
+      if (fitParameters) {
+	
+	//get significance and S/B
+	sigOverBkg = fitParameters[4] / fitParameters[6];
+	significance = fitParameters[4] / TMath::Sqrt(fitParameters[4] + fitParameters[6]);
+
+	//fill histograms
+	hMvsPt->SetBinContent(pT[ibin + 1], fitParameters[0]);
+	hMvsPt->SetBinError(pT[ibin + 1], fitParameters[1]);
+	hWidthVsPt->SetBinContent(pT[ibin + 1], fitParameters[2]);
+	hWidthVsPt->SetBinError(pT[ibin + 1], fitParameters[3]);
+	bWidth = bins->GetBinWidth(ibin + 1);
+	hSigVsPt->SetBinContent(pT[ibin + 1], fitParameters[4] / bWidth);
+	hSigVsPt->SetBinError(pT[ibin + 1], fitParameters[5] / bWidth);
+	if (fitMethod == 3) {
+	  hSigmaVoigVsPt->SetBinContent(pT[ibin + 1], fitParameters[13]);
+	  hSigmaVoigVsPt->SetBinError(pT[ibin + 1], fitParameters[14]);
+	}
+
+	hSigOverBkgVsPt->SetBinContent(pT[ibin + 1], sigOverBkg);
+	hSigOverBkgVsPt->SetBinError(pT[ibin + 1], sigOverBkg);
+	hSignificanceVsPt->SetBinContent(pT[ibin + 1], significance);
+	hSignificanceVsPt->SetBinError(pT[ibin + 1], significance);
+	
+      } else {
+	Printf("Ivalid fitParameters array. Check!!!");
       }
-      //continue;
+    } else {
+      Printf("Fit failed!");
     }
+    
+  }// end loop on pt bins
 
-    textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8, fitParameters);
+  
+  //plot fitted parameters vs pt
+  TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
+  c_histos->Divide(3, 2);
+  c_histos->cd(1);
+  hMvsPt->Draw();
+  c_histos->cd(2);
+  hWidthVsPt->Draw();
+  c_histos->cd(3);
+  hSigVsPt->Draw();
+  c_histos->cd(4);
+  hSigmaVoigVsPt->Draw();
+  c_histos->cd(5);
+  hSigOverBkgVsPt->Draw();
+  c_histos->cd(6);
+  hSignificanceVsPt->Draw();
 
-    canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
-    canvas[ibin]->Divide(2, 1);
-    canvas[ibin]->cd(1);
-    plot->GetXaxis()->SetTitle("#it{M}_{#pi#pi}(GeV/#it{c^{2}})");
-    plot->Draw("e");
-    canvas[ibin]->cd(2);
-    textFit->Draw();
-
-    hMvsPt->SetBinContent(pT[ibin + 1], fitParameters[0]);
-    hMvsPt->SetBinError(pT[ibin + 1], fitParameters[1]);
-    hWidthVsPt->SetBinContent(pT[ibin + 1], fitParameters[2]);
-    hWidthVsPt->SetBinError(pT[ibin + 1], fitParameters[3]);
-    bWidth = bins->GetBinWidth(ibin + 1);
-    hSigVsPt->SetBinContent(pT[ibin + 1], fitParameters[4] / bWidth);
-    hSigVsPt->SetBinError(pT[ibin + 1], fitParameters[5] / bWidth);
-    if (fitMethod == 3) {
-      hSigmaVoigVsPt->SetBinContent(pT[ibin + 1], fitParameters[13]);
-      hSigmaVoigVsPt->SetBinError(pT[ibin + 1], fitParameters[14]);
-    }
-    hSigOverBkgVsPt->SetBinContent(pT[ibin + 1], sigOverBkg);
-    hSigOverBkgVsPt->SetBinError(pT[ibin + 1], sigOverBkg);
-    hSignificanceVsPt->SetBinContent(pT[ibin + 1], significance);
-    hSignificanceVsPt->SetBinError(pT[ibin + 1], significance);
-
-    TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
-    c_histos->Divide(3, 2);
-    c_histos->cd(1);
-    hMvsPt->Draw();
-    c_histos->cd(2);
-    hWidthVsPt->Draw();
-    c_histos->cd(3);
-    hSigVsPt->Draw();
-    c_histos->cd(4);
-    hSigmaVoigVsPt->Draw();
-    c_histos->cd(5);
-    hSigOverBkgVsPt->Draw();
-    c_histos->cd(6);
-    hSignificanceVsPt->Draw();
-
-    fout->cd();
-    hMvsPt->Write();
-    hWidthVsPt->Write();
-    hSigVsPt->Write();
-    hSigmaVoigVsPt->Write();
-    hSigOverBkgVsPt->Write();
-    hSignificanceVsPt->Write();
-  }
+  //save output to file
+  fout->cd();
+  hMvsPt->Write();
+  hWidthVsPt->Write();
+  hSigVsPt->Write();
+  hSigmaVoigVsPt->Write();
+  hSigOverBkgVsPt->Write();
+  hSignificanceVsPt->Write();
   bins->Write();
-  //fout->Close();
+  fout->Close();
   return;
 }
 
-RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2)
+RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, Double_t* fitParameters, Bool_t useChi2, Int_t* fitStatus)
 {
   Color_t color[] = { kRed, kGreen + 2, kBlue, kMagenta, kBlack };
   Double_t histo_integral = h1->Integral();
@@ -210,7 +230,12 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   RooAddPdf funcVoig("model3", "sig+bgVoig", RooArgList(sumbkg, sigVoig), RooArgList(nsig, nbkg));
 
   RooFitResult* r1;
-  Int_t fitStatus[4] = { 1, 1, 1, 1 };
+
+  //take fitStatus from outside -- do not redefine with: Int_t fitStatus[4] = { 1, 1, 1, 1 };
+  if (!fitStatus){
+    Printf("ERROR: fitStatus array not defined");
+    return 0x0;
+  }
   Bool_t improve = kFALSE;
   Bool_t minos = kTRUE;
 
@@ -341,6 +366,10 @@ Bool_t isFitFailed(Int_t* fitStatus)
     return kTRUE;
   }
   for (Int_t o = 0; o < 4; o++) {
+    if (fitStatus[o] < 0) {
+      Printf("Fit status not evaluated.");
+      return kTRUE;
+    }
     if (fitStatus[o] == 4) {
       Printf("Minuit status = 4. Fit failed");
       return kTRUE;

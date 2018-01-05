@@ -16,21 +16,29 @@ Usage:
   <ROOT>, <ALIROOT>, <ALIPHYSICS> must be compatible versions of the packages (check on Monalisa)
 **********************************************************************************************************/
 
-#ifndef __CINT__
+#if !defined (CINT) || defined (CLING)
 #include <TSystem.h>
 #include <TROOT.h>
 #include <Rtypes.h>
 #include <TString.h>
 #include <TNamed.h>
 #include <TList.h>
-#include <ANALYSIS/AliAnalysisManager.h>
+#include <AliAnalysisAlien.h>
+#include <AliAnalysisManager.h>
+#include <AliAnalysisGrid.h>
 #include <TObjArray.h>
 #include <TObjString.h>
 #include <AliMultiInputEventHandler.h>
-#include <AliAODHandler.h>
+#include "AnalysisSetup.C"
+//#include <AliAODHandler.h>
 #endif
 
 class AliAnalysisGrid;
+void              LoadLibraries();
+void              SetupIO(TString suffix="_Example", Bool_t isMC = 0);
+AliAnalysisGrid * CreateAlienHandler(TString pluginmode = "test", Short_t ntest = 2, TString username = "fbellini", TString aliPhysicsVer = "vAN-20160312-1");
+TChain *          CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1);
+void              RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 1, TString suffix="Xe", TString username="fbellini", TString aliPhysicsVer = "vAN-20170926-1");
 
 
 /***************************************************************/
@@ -111,16 +119,25 @@ Bool_t runMonOnly = kFALSE;
 /***************************************************************/
 void LoadLibraries()
 {
-  gSystem->SetIncludePath("-I. -I$ROOTSYS/include  -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include -I$ALICE_PHYSICS/OADB/ -I$ALICE_PHYSICS/OADB/COMMON -I$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY -I$ALICE_PHYSICS/EVENTMIX -g"); 
+  //gSystem->SetIncludePath("-I. -I$ROOTSYS/include  -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include -I$ALICE_PHYSICS/OADB/ -I$ALICE_PHYSICS/OADB/COMMON -I$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY -I$ALICE_PHYSICS/EVENTMIX -g");
+
+#if !defined (CINT) || defined (CLING)
+  gInterpreter->ProcessLine(".include $ROOTSYS/include");
+  gInterpreter->ProcessLine(".include $ALICE_ROOT/include");
+#else
+  gROOT->ProcessLine(".include $ROOTSYS/include");
+  gROOT->ProcessLine(".include $ALICE_ROOT/include");
+#endif
+  
   printf("%s\n",gSystem->GetIncludePath());
   Printf("Loading libs");
-  //ROOT libraries
+  // //ROOT libraries
   gSystem->Load("libTree");
   gSystem->Load("libGeom");
   gSystem->Load("libVMC");
   gSystem->Load("libPhysics");
   gSystem->Load("libMinuit");
-  //Alice libraries
+  // //Alice libraries
   gSystem->Load("libSTEERBase");
   gSystem->Load("libESD");
   gSystem->Load("libAOD");
@@ -130,7 +147,7 @@ void LoadLibraries()
   gSystem->Load("libOADB");
   gSystem->Load("libCORRFW");
   //Pythia libs
-  gSystem->Load("libpythia6.so");
+   gSystem->Load("libpythia6.so");
   //gSystem->Load("libpythia6_4_28.so");
   //gSystem->Load("libAliPythia6.so");
   //rsn libraries
@@ -141,11 +158,7 @@ void LoadLibraries()
 
 
 /***************************************************************/
-void RunGridRsnTrain(TString pluginmode="test", 
-		     Short_t ntest = 1,
-		     TString suffix="Xe",
-		     TString username="fbellini", 
-		     TString aliPhysicsVer = "vAN-20170926-1") { 
+void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, TString username, TString aliPhysicsVer) { 
   
   Long64_t nentries=100000, firstentry=0; //needed to read input when running locally
   TString analysisMode  = "grid"; //in alternative: "local"
@@ -187,7 +200,7 @@ void RunGridRsnTrain(TString pluginmode="test",
     - creates analysis manager and input handler
   ****************************************************************/
   //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/steer/AnalysisSetup.C");
-  gROOT->LoadMacro(Form("%s/AnalysisSetup.C",loadMacroPath.Data()));
+  gROOT->LoadMacro(Form("%s/AnalysisSetup.C", loadMacroPath.Data()));
   TString options;
   if (isMC) options="MC"; else options="DATA";
   if (isPP) options.Append("_PP"); else options.Append("_PBPB");
@@ -222,12 +235,11 @@ void RunGridRsnTrain(TString pluginmode="test",
 }
 
 /***************************************************************/
-AliAnalysisGrid* CreateAlienHandler(TString pluginmode, 
-				    Short_t ntest = 2,			    
-				    TString username = "fbellini",
-				    TString aliPhysicsVer = "vAN-20160312-1")
+AliAnalysisGrid* CreateAlienHandler(TString pluginmode, Short_t ntest, TString username, TString aliPhysicsVer)
 {
-  
+  //
+  //Alien plugin
+  //
   AliAnalysisAlien *plugin = new AliAnalysisAlien();
   plugin->SetRunMode(pluginmode.Data());
   plugin->SetUser(username.Data());
@@ -253,7 +265,7 @@ AliAnalysisGrid* CreateAlienHandler(TString pluginmode,
   
   /**** feel free to modify the list of include paths and libraries according to your need! ****/
   plugin->AddIncludePath("-I. -I$ROOTSYS/include -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include -I$ALICE_PHYSICS/OADB/ -I$ALICE_PHYSICS/OADB/COMMON -I$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY -g"); 
-  plugin->SetAdditionalLibs("libpythia6.so libEventMixing.so libPWGLFresonances.so");
+  plugin->SetAdditionalLibs("liblhapdf.so libEGPythia6.so libpythia6_4_25.so libAliPythia6.so libpythia6.so libEventMixing.so libPWGLFresonances.so");
 
   /**** these have to be customized ****/
   plugin->SetAnalysisMacro(myMacroName.Data()); 
@@ -281,7 +293,7 @@ AliAnalysisGrid* CreateAlienHandler(TString pluginmode,
 }
 
 /***************************************************************/
-TChain *CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1) {
+TChain *CreateESDChain(TString esdpath, Int_t ifirst, Int_t ilast) {
 
 
   TChain *chainESD = new TChain("esdTree");
@@ -299,7 +311,7 @@ TChain *CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1) {
 }
 
 /***************************************************************/
-void SetupIO(TString suffix="_Example", Bool_t isMC = 0)
+void SetupIO(TString suffix, Bool_t isMC)
 {
   //Setup I/O paths and file names
   if (!isESD && aodN<0) {
