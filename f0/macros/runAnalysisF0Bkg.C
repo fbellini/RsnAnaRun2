@@ -7,7 +7,7 @@
 #include "AliPIDResponse.h"
 #endif
 
-void runAnalysisF0Bkg (Bool_t local=kTRUE, Bool_t gridTest=kTRUE)
+void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
 {
     // local --> set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
     // gridTest --> if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
@@ -26,7 +26,7 @@ void runAnalysisF0Bkg (Bool_t local=kTRUE, Bool_t gridTest=kTRUE)
 
     gSystem->Load("liblhapdf");
     gSystem->Load("libEGPythia6");
-    gSystem->Load("libpythia6_4_25");
+    gSystem->Load("libpythia6");
     gSystem->Load("libAliPythia6");
 
     // create the analysis manager
@@ -47,7 +47,7 @@ void runAnalysisF0Bkg (Bool_t local=kTRUE, Bool_t gridTest=kTRUE)
     AliTaskCDBconnect *taskCDB = reinterpret_cast<AliTaskCDBconnect*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCDBconnect.C"));
 
     gInterpreter->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
-    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"));
+    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE)"));
     physSelTask->SelectCollisionCandidates(AliVEvent::kINT7);
 
     gInterpreter->LoadMacro("${ALICE_ROOT}/ANALYSIS/macros/AddTaskPIDResponse.C");
