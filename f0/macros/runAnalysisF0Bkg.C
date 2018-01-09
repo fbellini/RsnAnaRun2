@@ -43,16 +43,30 @@ void runAnalysisF0Bkg (Bool_t local=kTRUE, Bool_t gridTest=kTRUE)
 
 
 #if !defined (__CINT__) || defined (__CLING__)
+    gInterpreter->LoadMacro("${ALICE_PHYSICS}/OADB/macros/AddTaskCDBconnect.C");
+    AliTaskCDBconnect *taskCDB = reinterpret_cast<AliTaskCDBconnect*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCDBconnect.C"));
+
+    gInterpreter->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
+    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"));
+    physSelTask->SelectCollisionCandidates(AliVEvent::kINT7);
+
+    gInterpreter->LoadMacro("${ALICE_ROOT}/ANALYSIS/macros/AddTaskPIDResponse.C");
+    AliAnalysisTaskPIDResponse* pidTask = reinterpret_cast<AliAnalysisTaskPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"));
+
     gInterpreter->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
     AliAnalysisTaskF0Bkg *task = reinterpret_cast<AliAnalysisTaskF0Bkg*>(gInterpreter->ExecuteMacro("AddTaskF0Bkg.C"));
-    AliAnalysisTaskPIDResponse *pidTask = reinterpret_cast<AliAnalysisTaskPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"));
-#else
-    gROOT->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
-    gROOT->LoadMacro("AddTaskF0Bkg.C");
-    AliAnalysisTaskF0Bkg *task = AddTaskF0Bkg();
-    gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
-    AliAnalysisTaskPIDResponse *pidTask = AddTaskPIDResponse(isMC);
-#endif
+
+  #else
+      gROOT->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
+      gROOT->LoadMacro("AddTaskF0Bkg.C");
+      AliAnalysisTaskF0Bkg *task = AddTaskF0Bkg();
+      gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
+      AliAnalysisTaskPIDResponse *pidTask = AddTaskPIDResponse(isMC);
+      gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
+      AliPhysicsSelectionTask *physSelTask = SelectCollisionCandidates(AliVEvent::kINT7);
+      gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCDBconnect.C");
+      AliTaskCDBconnect *taskCDB = AddTaskCDBconnect();
+  #endif
 
 
     if(!mgr->InitAnalysis()) return;
