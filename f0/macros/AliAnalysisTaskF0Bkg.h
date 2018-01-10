@@ -25,7 +25,8 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         Float_t                 PairPt(AliESDtrack* track1, AliESDtrack* track2);
         Float_t                 PairEta(AliESDtrack* track1, AliESDtrack* track2);
         Float_t                 PairY(AliESDtrack* track1, AliESDtrack* track2);
-
+	Bool_t                  IsGoodSPDvertexRes(const AliESDVertex * spdVertex);
+	Bool_t                  SelectVertex2015pp(AliVEvent *event, Bool_t checkSPDres = kTRUE, Bool_t requireSPDandTrk = kFALSE, Bool_t checkProximity = kTRUE, Bool_t enaMonitor = kTRUE);
 
     private:
         AliESDEvent*            fESD;

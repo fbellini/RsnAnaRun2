@@ -147,12 +147,24 @@ void AliAnalysisTaskF0Bkg::UserCreateOutputObjects()
   //  fPdgArray[10]={f0PDG, omegaPDG, rhoPDG, etaPDG, etaPrimePDG, f1PDG, f2PDG, kstarPDG, k0sPDG, phiPDG};
 
   //  fParticleName[10]={"f0","omega","rho","eta","etaPr","f1","f2","kStar", "k0s", "phi"};
-  fNEvents = new TH1I("fNEvents", "fNEvents", 4, 0, 4);
+  // fNEvents = new TH1I("fNEvents", "fNEvents", 4, 0, 4);
+  // fNEvents->GetXaxis()->SetBinLabel(1, "accepted");
+  // fNEvents->GetXaxis()->SetBinLabel(2, "processed");
+  // fNEvents->GetXaxis()->SetBinLabel(3, "with vtx");
+  // fNEvents->GetXaxis()->SetBinLabel(4, "|z_{vtx}|<10cm");
+  // fOutputList->Add(fNEvents);
+
+  fNEvents = new TH1I("fNEvents", "Event selection monitoring", 10, 0, 10);
   fNEvents->GetXaxis()->SetBinLabel(1, "accepted");
-  fNEvents->GetXaxis()->SetBinLabel(2, "processed");
-  fNEvents->GetXaxis()->SetBinLabel(3, "with vtx");
-  fNEvents->GetXaxis()->SetBinLabel(4, "|z_{vtx}|<10cm");
+  fNEvents->GetXaxis()->SetBinLabel(2, "input");
+  fNEvents->GetXaxis()->SetBinLabel(3, "no contributors");
+  fNEvents->GetXaxis()->SetBinLabel(4, "no trk vtx");
+  fNEvents->GetXaxis()->SetBinLabel(5, "no SPD vtx");
+  fNEvents->GetXaxis()->SetBinLabel(6, "bad SPD resol");
+  fNEvents->GetXaxis()->SetBinLabel(7, "no proximity");
+  fNEvents->GetXaxis()->SetBinLabel(8, "z_{vtx} out range");
   fOutputList->Add(fNEvents);
+
 
   for(Int_t j=0; j<10; j++){
     fHistPtGen[j]= new TH2F(Form("fHistPtGen_%s",fParticleName[j]), Form("generated %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1000, 0.3, 1.3, 220, 0., 11.);
@@ -190,49 +202,65 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
 
   AliVEvent *event = InputEvent();
   if(!event) return;
-  fNEvents->Fill(1);
-
+  
   Bool_t isESD = kFALSE;
   if (dynamic_cast<AliESDEvent*>(event)) isESD = kTRUE;
   else if (!dynamic_cast<AliAODEvent*>(event))
   AliFatal("I don't find the AOD event nor the ESD one, aborting.");
-
+  
   /*AliPIDResponse::EStartTimeType_t startTimeMethodDefault = AliPIDResponse::kBest_T0;
   if (fESDpid->GetTPCPIDParams()) {  // during reconstruction OADB not yet available
     startTimeMethodDefault = ((AliTOFPIDParams *)fESDpid->GetTPCPIDParams())->GetStartTimeMethod();
   }*/
 
-  const AliVVertex* vertex = event->GetPrimaryVertex();
-  if (!vertex) {
-    Printf("No primary vertex found!");
-    return;
-  }
-  fNEvents->Fill(2);
+  //apply vertex selection and fill histogram with number of accepted events
+  if (!SelectVertex2015pp(event, kTRUE, kFALSE, kTRUE, kTRUE)) return;
+  fNEvents->Fill(0);
 
-  if (TMath::Abs(vertex->GetZ()) > 10.)
-  return;
-  fNEvents->Fill(3);
+  //  fNEvents->Fill(1);
+  // const AliVVertex* vertex = event->GetPrimaryVertex();
+  // if (!vertex) {
+  //   Printf("No primary vertex found!");
+  //   fNEvents->Fill(2);
+  //   return;
+  // }
+  // //fNEvents->Fill(2);
 
-  const AliVVertex* vertexSPD = event->GetPrimaryVertexSPD();
-  if (!vertexSPD) {
-    Printf("No primary vertexSPD found!");
-    return;
-  }
+  // const AliVVertex* vertexSPD = event->GetPrimaryVertexSPD();
+  // if (!vertexSPD) {
+  //   Printf("No primary vertexSPD found!");
+  //   fNEvents->Fill(3);
+  //   return;
+  // }
 
-  if (TMath::Abs(vertex->GetZ()-vertexSPD->GetZ()) < 0.5)
-  return;
+  // //Note that AliVertex::GetStatus checks that N_contributors is > 0
+  // //reject events if both are explicitly requested and none is available
+  // Bool_t hasSPD = vertexSPD->GetStatus();
+  // Bool_t hasVtk = vertex->GetStatus();
+  // if (requireSPDandTrk && !(hasSPD && hasTrk)) return kFALSE;
+  
 
+  // //vertex proximity cut
+  // if (TMath::Abs(vertex->GetZ()-vertexSPD->GetZ()) <= 0.5){
+  //   fNEvents->Fill(4);
+  // } else {
+  //   return;
+  // }
+  
+  // if (!(TMath::Abs(vertex->GetZ())<10.)){
+  //   fNEvents->Fill(5);
+  //   return;
+  // }
+  //fNEvents->Fill(3);
+  
   ///////////// ------ generated f0s ------ /////////////
 
-  //fill histogram with number of accepted events
-  fNEvents->Fill(0);
   AliMCEventHandler* eventHandler = dynamic_cast<AliMCEventHandler*>(AliAnalysisManager::GetAnalysisManager()->GetMCtruthEventHandler());
 
   if (!eventHandler) {
     AliError("Could not retrieve MC event handler");
     return;
   }
-
 
   fMCEvent = (AliMCEvent*) eventHandler->MCEvent();
   if (!fMCEvent) {
@@ -264,19 +292,20 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
   } //stack loop
 
   ///////////// ------ reconstructed f0s ------ /////////////
+  if(!fPID) Printf("::::: ERROR: no PID available.");
 
   TLorentzVector v1, v2;
   TLorentzVector vSum;
+  const Float_t piMass = 0.13957;  // GeV/c^2
 
   Int_t iTracks = event->GetNumberOfTracks();           // see how many tracks there are in the event
+  for(Int_t k1 = 0; k1 < iTracks; k1++) {                 // loop over all these tracks
 
-  for(Int_t k1=0; k1 < iTracks; k1++) {                 // loop over all these tracks
     AliESDtrack* track1 = static_cast<AliESDtrack*>(event->GetTrack(k1));
-    if(!track1)continue;
+    if(!track1) continue;
     if (!fTrackFilter->IsSelected(track1)) continue;
-    if(!fPID) Printf("-----");
-    if (TMath::Abs(fPID->NumberOfSigmasTPC(track1, AliPID::kPion) < 2.)) continue;
-    v1.SetXYZM(track1->Px(),track1->Py(), track1->Pz(), track1->M());
+    if (TMath::Abs(fPID->NumberOfSigmasTPC(track1, AliPID::kPion) > 2.)) continue;
+    v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
     Int_t daug1Label = track1->GetLabel();
     if (daug1Label < 0) continue;
     TParticle*  daughter1 = fMCStack->Particle(daug1Label);
@@ -286,18 +315,20 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
     Int_t daug1PDG = daughter1->GetPdgCode();
     //printf("%ld\n", daug1PDG);
     if (TMath::Abs(daug1PDG) != 211) continue;
-
+    
     //printf("******* k: %d, dau1label: %d, mother1label: %d, mother1PDG: %ld, daug1PDG: %d\n", k1, daug1Label, mother1Label, mother1PDG, daug1PDG);
-
-
-    for(Int_t k2=k1+1; k2 < iTracks; k2++){
+    
+    for(Int_t k2 = k1+1; k2 < iTracks; k2++){
       if (k2!=k1){
         AliESDtrack* track2 = static_cast<AliESDtrack*>(event->GetTrack(k2));
         if(!track2)continue;
         if (!fTrackFilter->IsSelected(track2)) continue;
-        if (TMath::Abs(fPID->NumberOfSigmasTPC(track2, AliPID::kPion) < 2.)) continue;
-        v2.SetXYZM(track2->Px(),track2->Py(), track2->Pz(), track2->M());
-        vSum = v1+v2;
+        if (TMath::Abs(fPID->NumberOfSigmasTPC(track2, AliPID::kPion) > 2.)) continue;
+
+        v2.SetXYZM(track2->Px(),track2->Py(), track2->Pz(), piMass);
+
+	//apply rapidity cut to pair
+	vSum = v1+v2;
         if (fabs(vSum.Rapidity())>0.5) continue; //rapidity cut
         Int_t daug2Label = track2->GetLabel();
         if (daug2Label < 0) continue;
@@ -310,8 +341,9 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
 
         //printf("Particella 2: dau2label: %d, mother2label: %d, mother2PDG: %ld, daug2PDG: %d\n", daug2Label, mother2Label, mother2PDG, daug2PDG);
 
-        if(mother1Label==mother2Label){
+        if(mother1Label == mother2Label){
           for (Int_t iReco=0; iReco<10; iReco++){
+	    //compute invariant mass
             if(TMath::Abs(mother1->GetPdgCode()) == fPdgArray[iReco]){
               fHistPtReco[iReco]->Fill(vSum.Mag(), PairPt(track1,track2));
               fHistYReco[iReco]->Fill(PairPt(track1,track2), PairY(track1, track2));
@@ -322,9 +354,9 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
       } //i2Tracks
     }//if (k2!=k1)
   } //i1Tracks
-
+  
   // continue until all the tracks are processed
-
+  
   PostData(1, fOutputList);
 } //esd track loop
 
@@ -380,4 +412,73 @@ void AliAnalysisTaskF0Bkg::Terminate(Option_t *)
   // terminate
   // called at the END of the analysis (when all events are processed)
 }
+
 //_____________________________________________________________________________
+Bool_t AliAnalysisTaskF0Bkg::SelectVertex2015pp(AliVEvent *event,
+						Bool_t checkSPDres, //enable check on vtx resolution
+						Bool_t requireSPDandTrk, //ask for both trk and SPD vertex 
+						Bool_t checkProximity, //apply cut on relative position of spd and trk verteces 
+						Bool_t enaMonitor) //enable monitoring and counters
+{
+
+  if (!event) return kFALSE;
+  AliESDEvent *esd = dynamic_cast<AliESDEvent*>(event);
+  if (!esd) return kFALSE;
+  if (enaMonitor) fNEvents->Fill(1);
+  
+  const AliESDVertex * trkVertex = esd->GetPrimaryVertexTracks();
+  const AliESDVertex * spdVertex = esd->GetPrimaryVertexSPD();
+  Bool_t hasSPD = spdVertex->GetStatus();
+  Bool_t hasTrk = trkVertex->GetStatus();
+ 
+  //Note that AliVertex::GetStatus checks that N_contributors is > 0
+  //reject events if both are explicitly requested and none is available
+  if (requireSPDandTrk && !(hasSPD && hasTrk)) {
+    if (enaMonitor) fNEvents->Fill(2);
+    return kFALSE;
+  }
+  
+  //reject events if none between the SPD or track verteces are available
+  //if no trk vertex, try to fall back to SPD vertex;
+  if (!hasTrk) {
+    if (enaMonitor) fNEvents->Fill(3);
+    if (!hasSPD) {
+      if (enaMonitor) fNEvents->Fill(4);
+      return kFALSE;
+    }
+    //on demand check the spd vertex resolution and reject if not satisfied
+    if (checkSPDres && !IsGoodSPDvertexRes(spdVertex)) {
+      if (enaMonitor) fNEvents->Fill(5);
+      return kFALSE;
+    }
+  } else {
+    if (hasSPD) {
+      //if enabled check the spd vertex resolution and reject if not satisfied
+      //if enabled, check the proximity between the spd vertex and trak vertex, and reject if not satisfied
+      if (checkSPDres && !IsGoodSPDvertexRes(spdVertex)) {
+	if (enaMonitor) fNEvents->Fill(5);
+	return kFALSE;
+      }
+      if ((checkProximity && TMath::Abs(spdVertex->GetZ() - trkVertex->GetZ())>0.5)) {
+	if (enaMonitor) fNEvents->Fill(6);
+	return kFALSE; 
+      }
+    }
+  }
+
+  //Cut on the vertex z position
+  const AliESDVertex * vertex = esd->GetPrimaryVertex();
+  if (TMath::Abs(vertex->GetZ())>10) {
+    if (enaMonitor) fNEvents->Fill(7);
+    return kFALSE;
+  }
+  return kTRUE;
+}
+  
+//_____________________________________________________________________________
+Bool_t AliAnalysisTaskF0Bkg::IsGoodSPDvertexRes(const AliESDVertex * spdVertex)
+{
+  if (!spdVertex) return kFALSE;
+  if (spdVertex->IsFromVertexerZ() && !(spdVertex->GetDispersion()<0.04 && spdVertex->GetZRes()<0.25)) return kFALSE;
+  return kTRUE;
+}

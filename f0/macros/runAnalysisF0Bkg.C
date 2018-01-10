@@ -43,29 +43,31 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
 
 
 #if !defined (__CINT__) || defined (__CLING__)
-    gInterpreter->LoadMacro("${ALICE_PHYSICS}/OADB/macros/AddTaskCDBconnect.C");
-    AliTaskCDBconnect *taskCDB = reinterpret_cast<AliTaskCDBconnect*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCDBconnect.C"));
 
-    gInterpreter->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
-    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE)"));
+    AliTaskCDBconnect *taskCDB = reinterpret_cast<AliTaskCDBconnect*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/PWGPP/PilotTrain/AddTaskCDBconnect.C(\"raw://\")"));
+
+    /*alternative to work with root 6
+    //gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
+    //AliPhysicsSelectionTask* ps = reinterpret_cast<AliPhysicsSelectionTask*>(gROOT->ProcessLine("AddTaskPhysicsSelection(false, true)"));
+    */
+    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE, kTRUE)"));
     physSelTask->SelectCollisionCandidates(AliVEvent::kINT7);
 
-    gInterpreter->LoadMacro("${ALICE_ROOT}/ANALYSIS/macros/AddTaskPIDResponse.C");
-    AliAnalysisTaskPIDResponse* pidTask = reinterpret_cast<AliAnalysisTaskPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"));
+    AliAnalysisTaskPIDResponse* pidTask = reinterpret_cast<AliAnalysisTaskPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C(kTRUE, kTRUE, kTRUE)"));
 
-    gInterpreter->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
-    AliAnalysisTaskF0Bkg *task = reinterpret_cast<AliAnalysisTaskF0Bkg*>(gInterpreter->ExecuteMacro("AddTaskF0Bkg.C"));
+    gInterpreter->LoadMacro("~/alice/resonances/RsnAnaRun2/f0/macros/AliAnalysisTaskF0Bkg.cxx++g");
+    AliAnalysisTaskF0Bkg *task = reinterpret_cast<AliAnalysisTaskF0Bkg*>(gInterpreter->ExecuteMacro("~/alice/resonances/RsnAnaRun2/f0/macros/AddTaskF0Bkg.C"));
 
   #else
+      gROOT->LoadMacro("$ALICE_PHYSICS/PWGPP/PilotTrain/AddTaskCDBconnect.C");
+      AliTaskCDBconnect *taskCDB = AddTaskCDBconnect();
+      gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE)");
+      AliPhysicsSelectionTask *physSelTask = SelectCollisionCandidates(AliVEvent::kINT7);
+      gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C(kTRUE, kTRUE, kTRUE)");
+      AliAnalysisTaskPIDResponse *pidTask = AddTaskPIDResponse(isMC);
       gROOT->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
       gROOT->LoadMacro("AddTaskF0Bkg.C");
       AliAnalysisTaskF0Bkg *task = AddTaskF0Bkg();
-      gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C");
-      AliAnalysisTaskPIDResponse *pidTask = AddTaskPIDResponse(isMC);
-      gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
-      AliPhysicsSelectionTask *physSelTask = SelectCollisionCandidates(AliVEvent::kINT7);
-      gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCDBconnect.C");
-      AliTaskCDBconnect *taskCDB = AddTaskCDBconnect();
   #endif
 
 
@@ -81,8 +83,10 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
         chain->Add("AliESDs.root");
         // start the analysis locally, reading the events from the tchain
         mgr->StartAnalysis("local", chain);
+	
     } else {
-        // if we want to run on grid, we create and configure the plugin
+
+      // if we want to run on grid, we create and configure the plugin
         AliAnalysisAlien *alienHandler = new AliAnalysisAlien();
         // also specify the include (header) paths on grid
         alienHandler->AddIncludePath("-I. -I$ROOTSYS/include -I$ALICE_ROOT -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include");
