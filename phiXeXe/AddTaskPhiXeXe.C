@@ -120,11 +120,12 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    // ------------------------------------------------------
 #if !defined (__CINT__) || defined (__CLING__)
    
-   gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C(task, isMC, \"\", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor)");
+   gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C(task, isMC, \"\", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor)");
 
 #else
-   gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
-   ConfigPhiXeXe.C(task, isMC, "", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor);
+   //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
+   gROOT->LoadMacro("./ConfigPhiXeXe.C");
+   ConfigPhiXeXe(task, isMC, "test", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor);
 
 #endif
    
