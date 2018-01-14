@@ -19,7 +19,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
 					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kFastTPCpidNsigma,
 					 Float_t     nsigmaK = 3.0,
 					 Int_t       aodFilterBit = 5,
-					 TString     multEstimator = "AliMultSelection_V0M", 
+					 TString     multEstimator = "AliMultSelection_V0M",  
 					 Int_t       nmix = 5,
 					 Bool_t      enableMonitor = kTRUE,
 					 TString     outNameSuffix = "Xe")
@@ -57,7 +57,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    AliRsnMiniAnalysisTask *task = new AliRsnMiniAnalysisTask(taskName.Data(), isMC);
    //task->SelectCollisionCandidates(triggerMask);//AOD
    task->UseESDTriggerMask(triggerMask);//ESD
-   task->UseMultiplicity(multEstimator.Data());
+   task->UseMultiplicity("AliMultSelection_V0M");
    
    // set event mixing options
    task->UseContinuousMix();
@@ -65,7 +65,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    task->SetNMix(nmix);
    task->SetMaxDiffVz(maxDiffVzMix);
    task->SetMaxDiffMult(maxDiffMultMix);
-   task->UseMC(isMC);
+   //   task->UseMC(isMC);
    ::Info("AddTaskPhiXeXe", Form("Event mixing configuration: \n events to mix = %i \n max diff. vtxZ = cm %5.3f \n max diff multi = %5.3f \n", nmix, maxDiffVzMix, maxDiffMultMix));
    
    mgr->AddTask(task);
@@ -79,12 +79,14 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    // - 4th argument --> tells if TPC stand-alone vertexes must be accepted
    
    AliRsnCutEventUtils* cutEventUtils = new AliRsnCutEventUtils("cutEventUtils", kTRUE, rejectPileUp);
-   cutEventUtils->SetCheckAcceptedMultSelection(kTRUE);
+   cutEventUtils->SetRemovePileUppA2013(kFALSE);
+   cutEventUtils->SetCheckAcceptedMultSelection();
    ::Info("AddTaskPhiXeXe", Form(":::::::::::::::::: Centrality estimator: %s", multEstimator.Data()));
    
    AliRsnCutSet* eventCuts = new AliRsnCutSet("eventCuts", AliRsnTarget::kEvent);
    eventCuts->AddCut(cutEventUtils);
    eventCuts->SetCutScheme(Form("%s", cutEventUtils->GetName()));
+
    task->SetEventCuts(eventCuts); 
 
    //
@@ -116,11 +118,16 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    // ------------------------------------------------------
    // CONFIG ANALYSIS
    // ------------------------------------------------------
-   //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
-   gROOT->LoadMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C");
-   if (!ConfigPhiXeXe(task, isMC, "", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor)) return 0x0;
-   // Bool_t      useGeoCutsPbPb2015 = kFALSE;
+#if !defined (__CINT__) || defined (__CLING__)
+   
+   gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C(task, isMC, \"\", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor)");
 
+#else
+   gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
+   ConfigPhiXeXe.C(task, isMC, "", cutsPair, aodFilterBit, AliRsnCutSetDaughterParticle::kDisableCustom, cutKaCandidate, nsigmaK, enableMonitor);
+
+#endif
+   
    //
    // -- CONTAINERS --------------------------------------------------------------------------------
    //

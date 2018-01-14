@@ -10,6 +10,8 @@
 // (2) cuts at all levels: single daughters, tracks, events
 // (3) output objects: histograms or trees
 ****************************************************************************/
+Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut = NULL, Int_t customQualityCutsID = 0, Int_t customFilterBit = 0);
+
 Bool_t ConfigPhiXeXe(  
     AliRsnMiniAnalysisTask *task, 
     Bool_t                 isMC, 
@@ -36,8 +38,8 @@ Bool_t ConfigPhiXeXe(
   Int_t icutKa = task->AddTrackCuts(cutSetKa);
 
   //set daughter cuts
-  Int_t icut1 = icutKa;
-  Int_t icut2 = icutKa;
+  Int_t iCut1 = icutKa;
+  Int_t iCut2 = icutKa;
 
   //monitor single-track selection based on track quality cuts only
   AliRsnCutSetDaughterParticle * cutSetQuality = new AliRsnCutSetDaughterParticle("cutQuality", AliRsnCutSetDaughterParticle::kQualityStd2011, AliPID::kPion, 10.0, aodFilterBit, useCrossedRows);
@@ -88,8 +90,8 @@ Bool_t ConfigPhiXeXe(
   for (Int_t i = 0; i < 8; i++) {
     if (!use[i]) continue;
     AliRsnMiniOutput *out = task->CreateOutput(Form("%s%s", name[i].Data(), suffix), output.Data(), comp[i].Data());
-    out->SetCutID(0, icut1);
-    out->SetCutID(1, icut2);
+    out->SetCutID(0, iCut1);
+    out->SetCutID(1, iCut2);
     out->SetDaughter(0, AliRsnDaughter::kKaon);
     out->SetDaughter(1, AliRsnDaughter::kKaon);
     out->SetCharge(0, charge1[i]);
@@ -217,7 +219,7 @@ Bool_t ConfigPhiXeXe(
 }
 
 //-------------------------------------------------------  
-Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut, Int_t customQualityCutsID = 0, Int_t customFilterBit = 0)
+Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut, Int_t customQualityCutsID, Int_t customFilterBit)
 {
   //Sets configuration for track quality object different from std quality cuts.
   //Returns kTRUE if track quality cut object is successfully defined,
@@ -307,7 +309,7 @@ Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut, Int_t customQu
   trkQualityCut->SetPtRange(0.15, 20.0);
   trkQualityCut->SetEtaRange(-0.8, 0.8);
   
-  Printf(Form("::::: SetCustomQualityCut:: using custom track quality cuts #%i",customQualityCutsID));
+  Printf(Form("::::: SetCustomQualityCut:: using custom track quality cuts %i",customQualityCutsID));
   trkQualityCut->Print();
   return kTRUE;
 }
