@@ -22,11 +22,9 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         virtual void            UserExec(Option_t* option);
         virtual void            Terminate(Option_t* option);
         virtual void            SetTrackFilter(AliAnalysisFilter* trackF) {fTrackFilter = trackF;}
-        Float_t                 PairPt(AliESDtrack* track1, AliESDtrack* track2);
-        Float_t                 PairEta(AliESDtrack* track1, AliESDtrack* track2);
-        Float_t                 PairY(AliESDtrack* track1, AliESDtrack* track2);
 	Bool_t                  IsGoodSPDvertexRes(const AliESDVertex * spdVertex);
 	Bool_t                  SelectVertex2015pp(AliVEvent *event, Bool_t checkSPDres = kTRUE, Bool_t requireSPDandTrk = kFALSE, Bool_t checkProximity = kTRUE, Bool_t enaMonitor = kTRUE);
+        Bool_t                  IsTOFMatched(AliESDtrack *track);
 
     private:
         AliESDEvent*            fESD;
@@ -34,9 +32,16 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         AliStack*               fMCStack;
         AliAnalysisFilter*      fTrackFilter;
         //AliESDpid*              fESDpid;
-        AliPIDResponse*         fPID;
+        AliPIDResponse*         fPIDResponse;
         TList*                  fOutputList;
         TH1I*                   fNEvents;
+        TH2F*                   fHistPID1tpc;
+        TH2F*                   fHistPID2tpc;
+        TH2F*                   fHistPID1tof;
+        TH2F*                   fHistPID2tof;
+        TH2F*                   fHistoNoSelTracksEtaPt1;
+        TH2F*                   fHistoAcceptedTracksEtaPt1;
+        TH2F*                   fHistoAcceptedTracksEtaPt2;
         TH2F*                   fHistPtGen[10];
         TH2F*                   fHistPtReco[10];
         TH2F*                   fHistYGen[10];
