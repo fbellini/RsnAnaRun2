@@ -22,7 +22,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
 					 TString     multEstimator = "AliMultSelection_V0M",  
 					 Int_t       nmix = 5,
 					 Bool_t      enableMonitor = kTRUE,
-					 TString     outNameSuffix = "Xe")
+					 TString     outNameSuffix = "default")
 {  
   //-------------------------------------------
   // event cuts

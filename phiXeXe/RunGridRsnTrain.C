@@ -348,6 +348,7 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix,
   AliMultSelectionTask* taskMult = 0X0;
   if (enaMultSel) {
     taskMult = (AliMultSelectionTask *) AddTaskMultSelection(); //kTRUE, "B") to run in calibration mode
+    taskMult->SetSelectedTriggerClass(AliVEvent::kINT7);
     if (isMC) taskMult->SetUseDefaultMCCalib(isMC);
   }
   

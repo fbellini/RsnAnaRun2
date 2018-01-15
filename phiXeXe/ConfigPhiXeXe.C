@@ -101,7 +101,7 @@ Bool_t ConfigPhiXeXe(
     out->SetPairCuts(cutsPair);
     
     // axis X: invmass
-    out->AddAxis(imID, 350, 0.85, 1.2);
+    out->AddAxis(imID, 420, 0.98, 1.4);
     // axis Y: transverse momentum of pair as default - else chosen value
     if (yaxisVar==AliRsnMiniValue::kFirstDaughterPt)
       out->AddAxis(fdpt, 100, 0.0, 5.0);
@@ -167,7 +167,7 @@ Bool_t ConfigPhiXeXe(
     outm->SetMotherPDG(333);
     outm->SetMotherMass(1.01995);
     outm->SetPairCuts(cutsPair);
-    outm->AddAxis(imID, 350, 0.85, 1.2);
+    outm->AddAxis(imID, 420, 0.98, 1.4);
     outm->AddAxis(ptID, 100, 0.0, 5.0);
     outm->AddAxis(centID, 100, 0.0, 100.0);
       
@@ -178,7 +178,7 @@ Bool_t ConfigPhiXeXe(
     outm2->SetMotherPDG(333);
     outm2->SetMotherMass(1.01995);
     outm2->SetPairCuts(cutsPair);
-    outm2->AddAxis(imID, 350, 0.85, 1.2);
+    outm2->AddAxis(imID, 420, 0.98, 1.4);
     outm2->AddAxis(ptID, 100, 0.0, 5.0);
     outm2->AddAxis(yID, 400, -2.0, 2.0);
     
@@ -208,7 +208,7 @@ Bool_t ConfigPhiXeXe(
       outreflex->SetMotherPDG(333);
       outreflex->SetMotherMass(1.01995);
       outreflex->SetPairCuts(cutsPair);
-      outreflex->AddAxis(imID, 350, 0.85, 1.2);
+      outreflex->AddAxis(imID, 420, 0.98, 1.4);
       outreflex->AddAxis(ptID, 100, 0.0, 5.0);
       outreflex->AddAxis(centID, 100, 0.0, 100.0);
       
