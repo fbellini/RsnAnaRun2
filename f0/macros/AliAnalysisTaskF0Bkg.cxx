@@ -14,7 +14,7 @@
 **************************************************************************/
 
 
-////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 //                                                                     //
 //      Task for f0 background (MC efficiencies and template)          //
 //      analysis in pp collisions                                      //
@@ -64,33 +64,33 @@ const Char_t AliAnalysisTaskF0Bkg::fParticleName[][6]={"f0","omega","rho","eta",
 
 
 AliAnalysisTaskF0Bkg::AliAnalysisTaskF0Bkg() : AliAnalysisTaskSE(),
-fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fHistoNoSelTracksEtaPt1(0), fHistoAcceptedTracksEtaPt1(0), fHistoAcceptedTracksEtaPt2(0)
+fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0)
 {
   // default constructor, don't allocate memory here!
   // this is used by root for IO purposes, it needs to remain empty
 
   for(Int_t i=0; i<10; i++){
-    fHistPtGen[i]=0x0;
-    fHistPtReco[i]=0x0;
-    fHistYGen[i]=0x0;
-    fHistYReco[i]=0x0;
-    fHistEtaGen[i]=0x0;
-    fHistEtaReco[i]=0x0;
+    fGenMassVsPt[i]=0x0;
+    fRecoMassVsPt[i]=0x0;
+    fGenYVsPt[i]=0x0;
+    fRecoYVsPt[i]=0x0;
+    fGenEtaVsPt[i]=0x0;
+    fRecoEtaVsPt[i]=0x0;
   }
 }
 //_____________________________________________________________________________
 AliAnalysisTaskF0Bkg::AliAnalysisTaskF0Bkg(const char* name) : AliAnalysisTaskSE(name),
-fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fHistoNoSelTracksEtaPt1(0), fHistoAcceptedTracksEtaPt1(0), fHistoAcceptedTracksEtaPt2(0)
+fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0)
 {
   // constructor
 
   for(Int_t i=0; i<10; i++){
-    fHistPtGen[i]=0x0;
-    fHistPtReco[i]=0x0;
-    fHistYGen[i]=0x0;
-    fHistYReco[i]=0x0;
-    fHistEtaGen[i]=0x0;
-    fHistEtaReco[i]=0x0;
+    fGenMassVsPt[i]=0x0;
+    fRecoMassVsPt[i]=0x0;
+    fGenYVsPt[i]=0x0;
+    fRecoYVsPt[i]=0x0;
+    fGenEtaVsPt[i]=0x0;
+    fRecoEtaVsPt[i]=0x0;
   }
 
   DefineInput(0, TChain::Class());    // define the input of the analysis: in this case we take a 'chain' of events
@@ -134,19 +134,27 @@ AliAnalysisTaskF0Bkg::~AliAnalysisTaskF0Bkg()
   delete fHistPID2tpc;
   fHistPID2tpc = 0;
  }
- if (fHistoNoSelTracksEtaPt1){
-  delete fHistoNoSelTracksEtaPt1;
-  fHistoNoSelTracksEtaPt1 = 0;
+ if (fNoSelTracksEtaPt){
+  delete fNoSelTracksEtaPt;
+  fNoSelTracksEtaPt = 0;
  }
- if (fHistoAcceptedTracksEtaPt1){
-  delete fHistoAcceptedTracksEtaPt1;
-  fHistoAcceptedTracksEtaPt1 = 0;
+ if (fAcceptedGeomAccEtaPt){
+  delete fAcceptedGeomAccEtaPt;
+  fAcceptedGeomAccEtaPt = 0;
  }
- if (fHistoAcceptedTracksEtaPt2){
-  delete fHistoAcceptedTracksEtaPt2;
-  fHistoAcceptedTracksEtaPt2 = 0;
+ if (fAcceptedQualityEtaPt){
+  delete fAcceptedQualityEtaPt;
+  fAcceptedQualityEtaPt = 0;
  }
-  if(fOutputList) {
+ if (fAcceptedTOFMatchEtaPt){
+  delete fAcceptedTOFMatchEtaPt;
+  fAcceptedTOFMatchEtaPt = 0;
+ }
+ if (fAcceptedTracksEtaPt){
+  delete fAcceptedTracksEtaPt;
+  fAcceptedTracksEtaPt = 0;
+ }
+ if(fOutputList) {
     delete fOutputList;     // at the end of your task, it is deleted from memory by calling this function
   }
 }
@@ -189,27 +197,35 @@ void AliAnalysisTaskF0Bkg::UserCreateOutputObjects()
   fHistPID2tof = new TH2F("fHistPID2tof", "N sigma vs pT; #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -4., 4.);
   fOutputList->Add(fHistPID2tof);
 
-  fHistoNoSelTracksEtaPt1 = new TH2F("fEtaVsPt1", "#eta vs. pT - no selected tracks_1; #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
-  fOutputList->Add(fHistoNoSelTracksEtaPt1);
-  fHistoAcceptedTracksEtaPt1 = new TH2F("fAcceptedEtaVsPt1", "#eta vs. pT - accepted tracks_1; #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
-  fOutputList->Add(fHistoAcceptedTracksEtaPt1);
-  fHistoAcceptedTracksEtaPt2 = new TH2F("fAcceptedEtaVsPt2", "#eta vs. pT - accepted tracks_1; #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
-  fOutputList->Add(fHistoAcceptedTracksEtaPt2);
+  fNoSelTracksEtaPt = new TH2F("fNoSelTracksEtaPt", "#eta vs. pT - no selected tracks; #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fNoSelTracksEtaPt);
+
+  fAcceptedGeomAccEtaPt = new TH2F("fAcceptedGeomAccEtaPt", "#eta vs. pT - accepted tracks (geom acceptance); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedGeomAccEtaPt);
+
+  fAcceptedQualityEtaPt = new TH2F("fAcceptedQualityEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedQualityEtaPt);
+
+  fAcceptedTOFMatchEtaPt = new TH2F("fAcceptedTOFMatchEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + TOF match); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedTOFMatchEtaPt);
+
+  fAcceptedTracksEtaPt = new TH2F("fAcceptedTracksEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + TOF match + PID); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedTracksEtaPt);
 
   for(Int_t j=0; j<10; j++){
-    fHistPtGen[j]= new TH2F(Form("fHistPtGen_%s",fParticleName[j]), Form("generated %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
-    fHistPtReco[j] = new TH2F(Form("fHistPtReco_%s",fParticleName[j]), Form("reconstructed %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
-    fHistYGen[j] = new TH2F(Form("fHistYGen_%s",fParticleName[j]), Form("generated %s rapidity; #it{p}_{T} (GeV/#it{c}); #it{y}", fParticleName[j]), 220, 0., 11., 14, -0.7, 0.7);
-    fHistYReco[j] = new TH2F(Form("fHistYReco_%s",fParticleName[j]), Form("reconstructed %s rapidity; #it{p}_{T} (GeV/#it{c}); #it{y}", fParticleName[j]), 220, 0., 11., 14, -0.7, 0.7);
-    fHistEtaGen[j] = new TH2F(Form("fHistEtaGen_%s",fParticleName[j]), Form("generated %s pseudorapidity; #it{p}_{T} (GeV/#it{c}); #it{#eta}", fParticleName[j]), 220, 0., 11., 20, -1., 1.);
-    fHistEtaReco[j] = new TH2F(Form("fHistEtaReco_%s",fParticleName[j]), Form("reconstructed %s pseudorapidity; #it{p}_{T} (GeV/#it{c}); #it{#eta}", fParticleName[j]), 220, 0., 11., 20, -1., 1.);
+    fGenMassVsPt[j]= new TH2F(Form("fGenMassVsPt_%s",fParticleName[j]), Form("generated %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
+    fRecoMassVsPt[j] = new TH2F(Form("fRecoMassVsPt_%s",fParticleName[j]), Form("reconstructed %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
+    fGenYVsPt[j] = new TH2F(Form("fGenYVsPt_%s",fParticleName[j]), Form("generated %s rapidity; #it{p}_{T} (GeV/#it{c}); #it{y}", fParticleName[j]), 220, 0., 11., 14, -0.7, 0.7);
+    fRecoYVsPt[j] = new TH2F(Form("fRecoYVsPt_%s",fParticleName[j]), Form("reconstructed %s rapidity; #it{p}_{T} (GeV/#it{c}); #it{y}", fParticleName[j]), 220, 0., 11., 14, -0.7, 0.7);
+    fGenEtaVsPt[j] = new TH2F(Form("fGenEtaVsPt_%s",fParticleName[j]), Form("generated %s pseudorapidity; #it{p}_{T} (GeV/#it{c}); #it{#eta}", fParticleName[j]), 220, 0., 11., 20, -1., 1.);
+    fRecoEtaVsPt[j] = new TH2F(Form("fRecoEtaVsPt_%s",fParticleName[j]), Form("reconstructed %s pseudorapidity; #it{p}_{T} (GeV/#it{c}); #it{#eta}", fParticleName[j]), 220, 0., 11., 20, -1., 1.);
 
-    fOutputList->Add(fHistPtGen[j]);          // don't forget to add it to the list! the list will be written to file, so if you want
-    fOutputList->Add(fHistPtReco[j]);         // your histogram in the output file, add it to the list!
-    fOutputList->Add(fHistYGen[j]);
-    fOutputList->Add(fHistYReco[j]);
-    fOutputList->Add(fHistEtaGen[j]);
-    fOutputList->Add(fHistEtaReco[j]);
+    fOutputList->Add(fGenMassVsPt[j]);          // don't forget to add it to the list! the list will be written to file, so if you want
+    fOutputList->Add(fRecoMassVsPt[j]);         // your histogram in the output file, add it to the list!
+    fOutputList->Add(fGenYVsPt[j]);
+    fOutputList->Add(fRecoYVsPt[j]);
+    fOutputList->Add(fGenEtaVsPt[j]);
+    fOutputList->Add(fRecoEtaVsPt[j]);
   }
   PostData(1, fOutputList);           // postdata will notify the analysis manager of changes / updates to the
   // fOutputList object. the manager will in the end take care of writing your output to file
@@ -235,17 +251,11 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
   else if (!dynamic_cast<AliAODEvent*>(event))
   AliFatal("I don't find the AOD event nor the ESD one, aborting.");
 
-  /*AliPIDResponse::EStartTimeType_t startTimeMethodDefault = AliPIDResponse::kBest_T0;
-  if (fESDpid->GetTPCPIDParams()) {  // during reconstruction OADB not yet available
-    startTimeMethodDefault = ((AliTOFPIDParams *)fESDpid->GetTPCPIDParams())->GetStartTimeMethod();
-  }*/
-
   //apply vertex selection and fill histogram with number of accepted events
   if (!SelectVertex2015pp(event, kTRUE, kFALSE, kTRUE, kTRUE)) return;
   fNEvents->Fill(0);
 
   ///////////// ------ generated f0s ------ /////////////
-
   AliMCEventHandler* eventHandler = dynamic_cast<AliMCEventHandler*>(AliAnalysisManager::GetAnalysisManager()->GetMCtruthEventHandler());
 
   if (!eventHandler) {
@@ -268,7 +278,6 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
   TParticle* trackMC = 0x0;
   TLorentzVector v1, v2, vMC, vSum;
   const Float_t piMass = 0.13957;  // GeV/c^2
-  //printf ("ciao\n");
 
   for (Int_t iStack = 0; iStack < fMCStack->GetNtrack(); iStack++) {
 
@@ -281,9 +290,9 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
       if (pdgTest==fPdgArray[index]){
         vMC.SetXYZM(trackMC->Px(), trackMC->Py(), trackMC->Pz(), piMass);
         if (fabs(vMC.Rapidity())>0.5) continue; //rapidity cut
-        fHistPtGen[index]->Fill(trackMC->GetCalcMass(), trackMC->Pt());
-        fHistYGen[index]->Fill(trackMC->Pt(), trackMC->Y());
-        fHistEtaGen[index]->Fill(trackMC->Pt(), trackMC->Eta());
+        fGenMassVsPt[index]->Fill(trackMC->GetCalcMass(), trackMC->Pt());
+        fGenYVsPt[index]->Fill(trackMC->Pt(), trackMC->Y());
+        fGenEtaVsPt[index]->Fill(trackMC->Pt(), trackMC->Eta());
       } //endif
     } //pdg code loop
   } //stack loop
@@ -297,11 +306,16 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
     AliESDtrack* track1 = static_cast<AliESDtrack*>(event->GetTrack(k1));
     if(!track1) continue;
 
-    fHistoNoSelTracksEtaPt1->Fill(track1->Eta(), track1->Pt());
+    fNoSelTracksEtaPt->Fill(track1->Eta(), track1->Pt());
 
-    if (!fTrackFilter->IsSelected(track1)) continue;
     if (TMath::Abs((track1->Eta()))>0.8) continue;
     if (TMath::Abs((track1->Pt()))<0.15) continue;
+
+    fAcceptedGeomAccEtaPt->Fill(track1->Eta(), track1->Pt());
+
+    if (!fTrackFilter->IsSelected(track1)) continue;
+
+    fAcceptedQualityEtaPt->Fill(track1->Eta(), track1->Pt());
 
     Int_t daug1Label = track1->GetLabel();
     if (daug1Label < 0) continue;
@@ -318,9 +332,9 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
         AliESDtrack* track2 = static_cast<AliESDtrack*>(event->GetTrack(k2));
         if(!track2)continue;
 
-        if (!fTrackFilter->IsSelected(track2)) continue;
         if (TMath::Abs((track2->Eta()))>0.8) continue;
         if (TMath::Abs((track2->Pt()))<0.15) continue;
+        if (!fTrackFilter->IsSelected(track2)) continue;
 
         Int_t daug2Label = track2->GetLabel();
         if (daug2Label < 0) continue;
@@ -333,9 +347,9 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
 
         if(mother1Label == mother2Label){
 
-          Double_t nSigmaTPCkPion1=0., nSigmaTPCkPion2=0., nSigmaTOFkPion1=0., nSigmaTOFkPion2=0., nSigmaTPCAcceptedkPion1=0., nSigmaTPCAcceptedkPion2=0., nSigmaTOFAcceptedkPion1=0., nSigmaTOFAcceptedkPion2=0.;
+          Double_t nSigmaTPCkPion1=-9999., nSigmaTPCkPion2=-9999., nSigmaTOFkPion1=-9999., nSigmaTOFkPion2=-9999., nSigmaTPCAcceptedkPion1=-9999., nSigmaTPCAcceptedkPion2=-9999., nSigmaTOFAcceptedkPion1=-9999., nSigmaTOFAcceptedkPion2=-9999.;
 
-          Int_t PIDMethod = 1;
+          Int_t PIDMethod = 4;
 
           /* PIDMethod = 1: 2sTPC_3sTOFveto; PIDMethod = 2: 3sTPC_3sTOFveto; PIDMethod = 3: 2sTPC_4sTOFveto; PIDMethod = 4: 2sTPC; PIDMethod = 5: 2sTOF */
 
@@ -346,14 +360,18 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
           nSigmaTOFkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
           Bool_t TOFmatch2 = IsTOFMatched(track2);
 
+          if(TOFmatch1){
+            fAcceptedTOFMatchEtaPt->Fill(track1->Eta(), track1->Pt());
+          }
+
           switch (PIDMethod) {
             case 1 /*2sTPC_3sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 3.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 3.) & TOFmatch1) ){
                  v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
                  nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
                  nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
                }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 3.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 3.) & TOFmatch2) ){
                  v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
                  nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
                  nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
@@ -361,12 +379,12 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
               break;
             }
             case 2 /*3sTPC_3sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (!TOFmatch1))  |  ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (TMath::Abs(nSigmaTOFkPion1) < 3.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (TMath::Abs(nSigmaTOFkPion1) < 3.) & TOFmatch1) ){
                 v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
                 nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
                 nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
               }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (!TOFmatch2))  |  ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (TMath::Abs(nSigmaTOFkPion2) < 3.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (TMath::Abs(nSigmaTOFkPion2) < 3.) & TOFmatch2) ){
                 v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
                 nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
                 nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
@@ -374,12 +392,12 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
               break;
             }
             case 3 /*2sTPC_4sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1))  |  ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 4.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 4.) & TOFmatch1) ){
                 v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
                 nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
                 nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
               }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2))  |  ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 4.))){
+              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 4.) & TOFmatch2) ){
                 v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
                 nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
                 nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
@@ -387,22 +405,22 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
               break;
             }
             case 4 /*2sTPC*/ : {
-              if ((TMath::Abs(nSigmaTPCkPion1) < 2.)){
+              if ((TMath::Abs(nSigmaTPCkPion1) < 2.)) {
                 v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
                 nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
                 }
-              if ((TMath::Abs(nSigmaTPCkPion2) < 2.)){
+              if ((TMath::Abs(nSigmaTPCkPion2) < 2.)) {
                 v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
                 nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
                 }
               break;
             }
             case 5 /*2sTOF*/ : {
-              if ((TMath::Abs(nSigmaTOFkPion1) < 2.)){
+              if ((TMath::Abs(nSigmaTOFkPion1) < 2.) & TOFmatch1) {
                 v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
                 nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
                 }
-              if ((TMath::Abs(nSigmaTOFkPion2) < 2.)){
+              if ((TMath::Abs(nSigmaTOFkPion2) < 2.) & TOFmatch2) {
                 v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
                 nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
                 }
@@ -416,23 +434,21 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
 
           vSum = v1+v2;
 
-          if ((TMath::Abs(vSum.Rapidity()))<0.5){ //rapidity cut
-            fHistPID1tpc->Fill(v1.Pt(), nSigmaTPCAcceptedkPion1);
-            fHistPID2tpc->Fill(v2.Pt(), nSigmaTPCAcceptedkPion2);
-            fHistPID1tof->Fill(v1.Pt(), nSigmaTOFAcceptedkPion1);
-            fHistPID2tof->Fill(v2.Pt(), nSigmaTOFAcceptedkPion2);
-            fHistoAcceptedTracksEtaPt1->Fill(v1.PseudoRapidity(), v1.Pt());
-            fHistoAcceptedTracksEtaPt2->Fill(v2.PseudoRapidity(), v2.Pt());
+          fHistPID1tpc->Fill(v1.Pt(), nSigmaTPCAcceptedkPion1);
+          fHistPID2tpc->Fill(v2.Pt(), nSigmaTPCAcceptedkPion2);
+          fHistPID1tof->Fill(v1.Pt(), nSigmaTOFAcceptedkPion1);
+          fHistPID2tof->Fill(v2.Pt(), nSigmaTOFAcceptedkPion2);
+          fAcceptedTracksEtaPt->Fill(v1.PseudoRapidity(), v1.Pt());
 
+          if ((TMath::Abs(vSum.Rapidity()))<0.5){ //rapidity cut
             for (Int_t iReco=0; iReco<10; iReco++){
               if(TMath::Abs(mother1->GetPdgCode()) == fPdgArray[iReco]){
-                fHistPtReco[iReco]->Fill(vSum.Mag(), vSum.Pt());
-                fHistYReco[iReco]->Fill(vSum.Pt(), vSum.Rapidity());
-                fHistEtaReco[iReco]->Fill(vSum.Pt(), vSum.PseudoRapidity());
-              }//rapidity cut
-
-            } //histos
-          } //iReco
+                fRecoMassVsPt[iReco]->Fill(vSum.Mag(), vSum.Pt());
+                fRecoYVsPt[iReco]->Fill(vSum.Pt(), vSum.Rapidity());
+                fRecoEtaVsPt[iReco]->Fill(vSum.Pt(), vSum.PseudoRapidity());
+              } //histos
+            } //iReco
+          } //rapidity cut
         } //if mom1=mom2
       } //i2Tracks
     }//if (k2!=k1)
