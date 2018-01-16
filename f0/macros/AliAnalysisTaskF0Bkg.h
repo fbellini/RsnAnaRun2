@@ -22,8 +22,8 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         virtual void            UserExec(Option_t* option);
         virtual void            Terminate(Option_t* option);
         virtual void            SetTrackFilter(AliAnalysisFilter* trackF) {fTrackFilter = trackF;}
-	Bool_t                  IsGoodSPDvertexRes(const AliESDVertex * spdVertex);
-	Bool_t                  SelectVertex2015pp(AliVEvent *event, Bool_t checkSPDres = kTRUE, Bool_t requireSPDandTrk = kFALSE, Bool_t checkProximity = kTRUE, Bool_t enaMonitor = kTRUE);
+	      Bool_t                  IsGoodSPDvertexRes(const AliESDVertex * spdVertex);
+	      Bool_t                  SelectVertex2015pp(AliVEvent *event, Bool_t checkSPDres = kTRUE, Bool_t requireSPDandTrk = kFALSE, Bool_t checkProximity = kTRUE, Bool_t enaMonitor = kTRUE);
         Bool_t                  IsTOFMatched(AliESDtrack *track);
 
     private:
@@ -39,18 +39,19 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         TH2F*                   fHistPID2tpc;
         TH2F*                   fHistPID1tof;
         TH2F*                   fHistPID2tof;
-        TH2F*                   fHistoNoSelTracksEtaPt1;
-        TH2F*                   fHistoAcceptedTracksEtaPt1;
-        TH2F*                   fHistoAcceptedTracksEtaPt2;
-        TH2F*                   fHistPtGen[10];
-        TH2F*                   fHistPtReco[10];
-        TH2F*                   fHistYGen[10];
-        TH2F*                   fHistYReco[10];
-        TH2F*                   fHistEtaGen[10];
-        TH2F*                   fHistEtaReco[10];
+        TH2F*                   fNoSelTracksEtaPt;
+        TH2F*                   fAcceptedGeomAccEtaPt;
+        TH2F*                   fAcceptedQualityEtaPt;
+        TH2F*                   fAcceptedTOFMatchEtaPt;
+        TH2F*                   fAcceptedTracksEtaPt;
+        TH2F*                   fGenMassVsPt[10];
+        TH2F*                   fRecoMassVsPt[10];
+        TH2F*                   fGenYVsPt[10];
+        TH2F*                   fRecoYVsPt[10];
+        TH2F*                   fGenEtaVsPt[10];
+        TH2F*                   fRecoEtaVsPt[10];
         const static Char_t     fParticleName[][6];
         const static ULong_t    fPdgArray[];
-
 
         AliAnalysisTaskF0Bkg(const AliAnalysisTaskF0Bkg&); // not implemented
         AliAnalysisTaskF0Bkg& operator=(const AliAnalysisTaskF0Bkg&); // not implemented
