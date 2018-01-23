@@ -29,11 +29,11 @@ Usage:
 #endif
 
 TChain * CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1);
-void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 1, TString suffix="Xe",
+void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 1, TString suffix="Xe",   Bool_t isLocalMerge = 0,
 			 TString dataset = "LHC17n", Bool_t isMC = 0, Bool_t isPP = 0, Int_t aodN = -1,
 			 TString username="fbellini", TString aliPhysicsVer = "vAN-20180120-1");
 
-void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix,
+void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t isLocalMerge,
 		     TString dataset, Bool_t isMC, Bool_t isPP, Int_t aodN,
 		     TString username, TString aliPhysicsVer)
 {
@@ -155,7 +155,6 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix,
      Otherwise, local merge is always possible. */
   TString analysisMode  = "grid"; //in alternative: "local"
   Bool_t useAlienPlugin = (pluginmode.IsNull()? kFALSE : kTRUE);
-  Bool_t isLocalMerge = 0;
   
   if(analysisMode=="grid") {
     if (!useAlienPlugin) analysisMode = "local";
