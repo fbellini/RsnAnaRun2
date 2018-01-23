@@ -48,7 +48,7 @@ void f0_fit(
 
 #ifdef __CINT__
   gROOT->ProcessLineSync(".x RooRelBW.cxx+");
-  //gROOT->ProcessLineSync(".x RooFlatte.cxx+");
+//gROOT->ProcessLineSync(".x RooFlatte.cxx+");
 #endif
 
   //input file
@@ -94,10 +94,9 @@ void f0_fit(
   TH1F* hSigOverBkgVsPt = new TH1F("hSigOverBkgVsPt", "f_{0} sig/bkg; p_{T} (GeV/#it{c}); S/B", numPt, pT);
   TH1F* hSignificanceVsPt = new TH1F("hSignificanceVsPt", "f_{0} sig/#sqrt(sig+bkg); p_{T} (GeV/#it{c}); S/#sqrt(S+B)", numPt, pT);
 
-
   //Loop on pt bins
   for (Int_t ibin = 0; ibin < 10; ibin++) {
-    
+
     hUSPminusLSB[ibin] = (TH1D*)fin->Get(Form("USP-LSBGeoMean_%d", ibin));
     if (!hUSPminusLSB[ibin]) {
       Printf("Input histogram error.");
@@ -106,21 +105,23 @@ void f0_fit(
 
     Int_t iMinBinPt = pT[ibin];
     Int_t iMaxBinPt = pT[ibin + 1];
-    
+
     //define fit parameters and status flags
     Double_t bWidth;
     Double_t fitParameters[17];
-    for (Int_t ipar = 0; ipar < 17; ipar++) { fitParameters[ipar] = -1.0; }
-    Double_t sigOverBkg = -1.0; 
-    Double_t significance = -1.0; 
-    Int_t fitStatus[4] = { -1, -1, -1, -1};
-    
+    for (Int_t ipar = 0; ipar < 17; ipar++) {
+      fitParameters[ipar] = -1.0;
+    }
+    Double_t sigOverBkg = -1.0;
+    Double_t significance = -1.0;
+    Int_t fitStatus[4] = { -1, -1, -1, -1 };
+
     //run fit
     plot = (RooPlot*)fit(hUSPminusLSB[ibin], xMinRange, xMaxRange, fitMethod, fitParameters, kTRUE, fitStatus);
 
     //check fit status and save fit output if fit succeeded
     if (!isFitFailed(fitStatus)) {
-     
+
       textFit = (TPaveText*)textFitResults(fitMethod, 0.05, 0.1, 0.95, 0.8, fitParameters);
 
       canvas[ibin] = new TCanvas(Form("c%d", ibin), Form("canvas %2.1f < p_{T} < %2.1f GeV/#it{c}", pT[ibin], pT[ibin + 1]), 1600, 800);
@@ -130,42 +131,46 @@ void f0_fit(
       plot->Draw("e");
       canvas[ibin]->cd(2);
       textFit->Draw();
+      canvas[ibin]->Print(Form("fit_method%d_%2.1f<pT<%2.1f.png", fitMethod, pT[ibin], pT[ibin + 1]));
 
       //protection: check that fitParameters exists
       if (fitParameters) {
-	
-	//get significance and S/B
-	sigOverBkg = fitParameters[4] / fitParameters[6];
-	significance = fitParameters[4] / TMath::Sqrt(fitParameters[4] + fitParameters[6]);
 
-	//fill histograms
-	hMvsPt->SetBinContent(pT[ibin + 1], fitParameters[0]);
-	hMvsPt->SetBinError(pT[ibin + 1], fitParameters[1]);
-	hWidthVsPt->SetBinContent(pT[ibin + 1], fitParameters[2]);
-	hWidthVsPt->SetBinError(pT[ibin + 1], fitParameters[3]);
-	bWidth = bins->GetBinWidth(ibin + 1);
-	hSigVsPt->SetBinContent(pT[ibin + 1], fitParameters[4] / bWidth);
-	hSigVsPt->SetBinError(pT[ibin + 1], fitParameters[5] / bWidth);
-	if (fitMethod == 3) {
-	  hSigmaVoigVsPt->SetBinContent(pT[ibin + 1], fitParameters[13]);
-	  hSigmaVoigVsPt->SetBinError(pT[ibin + 1], fitParameters[14]);
-	}
+        //get significance and S/B
+        sigOverBkg = fitParameters[4] / fitParameters[6];
+        significance = fitParameters[4] / TMath::Sqrt(fitParameters[4] + fitParameters[6]);
 
-	hSigOverBkgVsPt->SetBinContent(pT[ibin + 1], sigOverBkg);
-	hSigOverBkgVsPt->SetBinError(pT[ibin + 1], sigOverBkg);
-	hSignificanceVsPt->SetBinContent(pT[ibin + 1], significance);
-	hSignificanceVsPt->SetBinError(pT[ibin + 1], significance);
-	
+        //fill histograms
+        hMvsPt->SetBinContent(ibin + 1, fitParameters[0]);
+        hMvsPt->SetBinError(ibin + 1, fitParameters[1]);
+        hWidthVsPt->SetBinContent(ibin + 1, fitParameters[2]);
+        hWidthVsPt->SetBinError(ibin + 1, fitParameters[3]);
+        bWidth = bins->GetBinWidth(ibin + 1);
+        hSigVsPt->SetBinContent(ibin + 1, fitParameters[4] / bWidth);
+        hSigVsPt->SetBinError(ibin + 1, fitParameters[5] / bWidth);
+        if (fitMethod == 3) {
+          hSigmaVoigVsPt->SetBinContent(ibin + 1, fitParameters[13]);
+          hSigmaVoigVsPt->SetBinError(ibin + 1, fitParameters[14]);
+        }
+        hSigOverBkgVsPt->SetBinContent(ibin + 1, sigOverBkg);
+        hSigOverBkgVsPt->SetBinError(ibin + 1, sigOverBkg);
+        hSignificanceVsPt->SetBinContent(ibin + 1, significance);
+        hSignificanceVsPt->SetBinError(ibin + 1, significance);
+
       } else {
-	Printf("Ivalid fitParameters array. Check!!!");
+        Printf("Ivalid fitParameters array. Check!!!");
       }
     } else {
       Printf("Fit failed!");
     }
-    
-  }// end loop on pt bins
 
-  
+    Int_t n;
+    printf("Please enter 1 to continue \n");
+    scanf("%d", &n);
+    printf("That's all folks! \n");
+
+  } // end loop on pt bins
+
   //plot fitted parameters vs pt
   TCanvas* c_histos = new TCanvas("c_histos", "c_histos", 1200, 600);
   c_histos->Divide(3, 2);
@@ -181,6 +186,7 @@ void f0_fit(
   hSigOverBkgVsPt->Draw();
   c_histos->cd(6);
   hSignificanceVsPt->Draw();
+  c_histos->Print("fitParameters.png");
 
   //save output to file
   fout->cd();
@@ -192,6 +198,7 @@ void f0_fit(
   hSignificanceVsPt->Write();
   bins->Write();
   fout->Close();
+
   return;
 }
 
@@ -232,7 +239,7 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   RooFitResult* r1;
 
   //take fitStatus from outside -- do not redefine with: Int_t fitStatus[4] = { 1, 1, 1, 1 };
-  if (!fitStatus){
+  if (!fitStatus) {
     Printf("ERROR: fitStatus array not defined");
     return 0x0;
   }
@@ -246,8 +253,8 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
     RooNLLVar* nll = new RooNLLVar("nll", "nll", funcBW, dh);
     if (useChi2)
       r1 = (RooFitResult*)fitChi2(chi2Var, fitStatus, minos, improve);
-    else
-      r1 = (RooFitResult*)fitLikelihood(nll, fitStatus, minos, improve);
+    //  else
+    //  r1 = (RooFitResult*)fitLikelihood(nll, fitStatus, minos, improve);
     //funcBW.fitTo(dh /*, Extended(), Save()*/);
     //RooNLLVar *nll = new RooNLLVar("nll","-log(L)",funcBW,dh,Extended(kTRUE),Verbose(kTRUE), NumCPU(1));
     //RooChi2Var *chi2 = new RooChi2Var("chi2","chi2",funcBW,dh,Extended(kTRUE),Verbose(kTRUE), NumCPU(1));
@@ -433,21 +440,18 @@ RooFitResult* fitChi2(RooChi2Var* chi2Var, Int_t* fitStatus, Bool_t minos = 1, B
   model1->hesse();
   temp = (RooFitResult*)model1->save();
   fitStatus[1] = temp->status();
-
   if (improve) {
     model1->improve();
     temp = (RooFitResult*)model1->save();
     fitStatus[2] = temp->status();
   } else
     fitStatus[2] = 0;
-
   if (minos) {
     model1->minos();
     temp = (RooFitResult*)model1->save();
     fitStatus[3] = temp->status();
   } else
     fitStatus[3] = 0;
-
   result = (RooFitResult*)model1->save();
   return result;
 }*/

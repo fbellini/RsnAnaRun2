@@ -7,7 +7,7 @@
 #include "AliPIDResponse.h"
 #endif
 
-void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
+void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kFALSE)
 {
     // local --> set if you want to run the analysis locally (kTRUE), or on grid (kFALSE)
     // gridTest --> if you run on grid, specify test mode (kTRUE) or full grid model (kFALSE)
@@ -55,8 +55,8 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
 
     AliAnalysisTaskPIDResponse* pidTask = reinterpret_cast<AliAnalysisTaskPIDResponse*>(gInterpreter->ExecuteMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C(kTRUE, kTRUE, kTRUE)"));
 
-    gInterpreter->LoadMacro("~/alice/resonances/RsnAnaRun2/f0/macros/AliAnalysisTaskF0Bkg.cxx++g");
-    AliAnalysisTaskF0Bkg *task = reinterpret_cast<AliAnalysisTaskF0Bkg*>(gInterpreter->ExecuteMacro("~/alice/resonances/RsnAnaRun2/f0/macros/AddTaskF0Bkg.C"));
+    gInterpreter->LoadMacro("AliAnalysisTaskF0Bkg.cxx++g");
+    AliAnalysisTaskF0Bkg *task = reinterpret_cast<AliAnalysisTaskF0Bkg*>(gInterpreter->ExecuteMacro("AddTaskF0Bkg.C"));
 
   #else
       gROOT->LoadMacro("$ALICE_PHYSICS/PWGPP/PilotTrain/AddTaskCDBconnect.C");
@@ -83,7 +83,7 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
         chain->Add("AliESDs.root");
         // start the analysis locally, reading the events from the tchain
         mgr->StartAnalysis("local", chain);
-	
+
     } else {
 
       // if we want to run on grid, we create and configure the plugin
@@ -104,15 +104,14 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
         // MC has no prefix, data has prefix 000
         alienHandler->SetRunPrefix("");
         // runnumber
-        /*Int_t run[25]={244628, 244627, 244626, 244619, 244618, 244617, 244542, 244540, 244531, 244484,
+        Int_t run[3]={/*244628, 244627, 244626,*/ 244619, 244618, 244617/*, 244542, 244540, 244531, 244484,
         244483, 244482, 244481, 244480, 244456, 244453, 244421, 244416, 244377, 244364,
-        244359, 244355, 244351, 244343, 244340};
-
-        for (Int_t iRun=0; iRun<25; iRun++){
+        244359, 244355, 244351, 244343, 244340*/};
+        for (Int_t iRun=0; iRun<3; iRun++){
         alienHandler->AddRunNumber(run[iRun]);
-      }*/
+        }
         // to add only one run list -> comment lines 90-96 and use line 98
-        alienHandler->AddRunNumber(244628);
+        //alienHandler->AddRunNumber(244628);
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(50);
@@ -132,7 +131,7 @@ void runAnalysisF0Bkg (Bool_t local=kFALSE, Bool_t gridTest=kTRUE)
 
         // define the output folders
         alienHandler->SetGridWorkingDir("F0bkg");
-        alienHandler->SetGridOutputDir("20171127");
+        alienHandler->SetGridOutputDir("20180115");
 
         // connect the alien plugin to the manager
         mgr->SetGridHandler(alienHandler);

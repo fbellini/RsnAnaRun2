@@ -24,104 +24,85 @@
 #include "TSystem.h"
 #include "f0Params.h"
 
-TH1D* ratio_ef(TH1D* h1, TH1D* h2);
-TH1D* divis(TH1D* h1, TH1D* h2);
-
 void f0_eff()
 {
   TGaxis::SetMaxDigits(3);
+  gStyle->SetOptStat("1111");
+  gStyle->SetTextFont(42);
 
-  TFile* file = TFile::Open("AnalysisResults.root");
-  TDirectory* directory1 = (TDirectory*)file->Get("F0_bkg");
+  TFile* finAnalysis = TFile::Open("AnalysisResults.root");
+  TDirectory* directory1 = (TDirectory*)finAnalysis->Get("F0_bkg");
   directory1->cd();
   TDirectory* directory2 = (TDirectory*)directory1->Get("MyOutputContainer");
   directory2->cd();
 
-  TCanvas* canvas[10];
   TFile* fout = TFile::Open("efficiencies.root", "RECREATE");
 
-  enum PartSpec { kF0 = 0,
-    kOmega = 1,
-    kRho = 2,
-    kEta = 3,
-    kEtaPr = 4,
-    kF1
-    = 5,
-    kF2 = 6,
-    kKStar = 7,
-    kK0s = 8,
-    kPhi = 9,
-    kAll = 10 };
-  const Char_t* particles[kAll] = { "f0", "omega", "rho", "eta", "etaPr", "f1", "f2", "kStar", "k0s", "phi" };
-  enum { kPtBins = 11 };
-  const Double_t pT[kPtBins] = { 0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11. };
+  Double_t pT[] = {0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11.};
+  Int_t   npT  = sizeof(pT) / sizeof(pT[0]) - 1;
+  TAxis *pTbins = new TAxis(npT, pT);
 
-  TH2F* hPtGen[kAll] = { 0x0 };
-  TH2F* hPtReco[kAll] = { 0x0 };
-  TH1D* hPtGen1d[kAll] = { 0x0 };
-  TH1D* hPtReco1d[kAll] = { 0x0 };
-  TH1D* hEff[kAll] = { 0x0 };
+  enum PartSpec { kF0 = 0,
+   kOmega = 1,
+   kRho = 2,
+   kEta = 3,
+   kEtaPr = 4,
+   kF1 = 5,
+   kF2 = 6,
+   kKStar = 7,
+   kK0s = 8,
+   kPhi = 9,
+   kAll = 10 };
+
+  const Char_t* particles[kAll] = { "f0", "omega", "rho", "eta", "etaPr", "f1", "f2", "kStar", "k0s", "phi" };
+
+  TH2F* hGenMvsPt[kAll] = { 0x0 };
+  TH2F* hRecoMvsPt[kAll] = { 0x0 };
+  TH1D* hGenPt[kAll] = { 0x0 };
+  TH1D* hRecoPt[kAll] = { 0x0 };
+  TH1D* hEffVsPt[kAll] = { 0x0 };
+
+  TCanvas* canvas[kAll];
+
+  Double_t all[kAll][11], trueReco[kAll][11], efficiency[kAll][11], errEfficiency[kAll][11];
+  Double_t iMinBin1[11], iMinBin2[11], iMaxBin1[11], iMaxBin2[11];
+
+  //Double_t all[kAll][npT+1], trueReco[kAll][npT+1], efficiency[kAll][npT+1], errAll[kAll][npT+1], errTrueReco[kAll][npT+1], errEfficiency[kAll][npT+1];
 
   for (Int_t i = 0; i < kAll; i++) {
-    hPtGen[i] = (TH2F*)directory2->FindObject(Form("fHistPtGen_%s", particles[i]));
-    hPtReco[i] = (TH2F*)directory2->FindObject(Form("fHistPtReco_%s", particles[i]));
-    hPtGen1d[i] = (TH1D*)hPtGen[i]->ProjectionY(Form("hPtGen1d%s", particles[i]), 0., -1.);
-    hPtReco1d[i] = (TH1D*)hPtReco[i]->ProjectionY(Form("hPtReco1d%s", particles[i]), 0., -1.);
-    hEff[i] = ratio_ef(hPtReco1d[i], hPtGen1d[i]);
-    canvas[i] = new TCanvas(Form("c%d", i), Form("%s efficiency", particles[i]), 1500., 500.);
-    canvas[i]->Divide(3, 1);
-    canvas[i]->cd(1);
-    hPtGen1d[i]->Draw("PE");
-    canvas[i]->cd(2);
-    hPtReco1d[i]->Draw("PE");
-    canvas[i]->cd(3);
-    hEff[i]->Draw("PE");
-  }
+    hGenMvsPt[i] = (TH2F*)directory2->FindObject(Form("fGenMassVsPt_%s", particles[i]));
+    hRecoMvsPt[i] = (TH2F*)directory2->FindObject(Form("fRecoMassVsPt_%s", particles[i]));
+    hGenPt[i] = (TH1D*)hGenMvsPt[i]->ProjectionY(Form("hGenPt%s", particles[i]));
+    hRecoPt[i] = (TH1D*)hRecoMvsPt[i]->ProjectionY(Form("hRecoPt%s", particles[i]));
+    hEffVsPt[i] = new TH1D(Form("hEffVsPt_%s", particles[i]), Form("%s efficiency in pp@5.02 TeV; p_{T} (GeV/#it{c}); #epsilon = reco true / generated", particles[i]), npT, pT);
 
-  return;
-}
 
-TH1D* ratio_ef(TH1D* h1, TH1D* h2)
-{
-  if (!h1 || !h2)
-    return NULL;
-  TH1D* hResult = (TH1D*)h1->Clone(Form("%s_eff", h1->GetName()));
-  hResult->Reset("ICES");
-  //Printf("%s", hResult->GetName());
-  const Double_t momT[12] = { 0., 0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9., 11. };
-  Double_t cont1 = 0.0, cont2 = 0.0, error1 = 0.0, error2 = 0.0, error3 = 0.0, ratio_eff = 0.0;
-    for(Int_t index=0; index<12; index++){
-    h1->RebinX(h1->GetXaxis()->FindBin(momT[index+1]) - h1->GetXaxis()->FindBin(momT[index]));
-    h2->RebinX(h2->GetXaxis()->FindBin(momT[index+1]) - h2->GetXaxis()->FindBin(momT[index]));
-    for (Int_t j = 1; j < h1->GetNbinsX() + 1; j++) {
-    cont1 = h1->GetBinContent(j);
-    cont2 = h2->GetBinContent(j);
-    error1 = h1->GetBinError(j);
-    error2 = h2->GetBinError(j);
-    ratio_eff = cont1/cont2;
-    error3 = pow((pow(error1, 2) + pow(error2, 2)), 1. / 2);
-    hResult->SetBinContent(j, ratio_eff);
-    hResult->SetBinError(j, error3);
-  }
-}
+    for(Int_t j=0; j<npT+1; j++){
+      iMinBin1[j] = hGenPt[0]->GetXaxis()->FindBin(pT[j]);
+      iMaxBin1[j] = hGenPt[0]->GetXaxis()->FindBin(pT[j+1]);
+      iMinBin2[j] = hRecoPt[0]->GetXaxis()->FindBin(pT[j]);
+      iMaxBin2[j] = hRecoPt[0]->GetXaxis()->FindBin(pT[j+1]);
 
-  return hResult;
-}
+      if (iMinBin1[j] != iMinBin2[j] || iMaxBin1[j] != iMaxBin2[j])
+      ::Fatal("Error in rebinning histos!", "Error in rebinning histos!");
 
-TH1D* divis(TH1D* h1, TH1D* h2)
-{
-  TH1D* hResult = NULL;
-  //returns division of two histograms
-  if (!h1 || !h2)
-    return NULL;
-  Int_t nBin1 = h1->GetXaxis()->GetNbins();
-  Int_t nBin2 = h2->GetXaxis()->GetNbins();
-  if (nBin1 == nBin2) {
-    hResult = (TH1D*)h1->Clone();
-    hResult->Divide(h2);
-  } else {
-    Printf("Histograms do not have the same binning.  nBin1 = %d, nBin2 = %d", nBin1, nBin2);
-    return NULL;
-  }
-  return hResult;
+      all[0][j] = hGenPt[i]->Integral(iMinBin1[j], iMaxBin1[j]);
+      trueReco[0][j] = hRecoPt[i]->Integral(iMinBin2[j], iMaxBin2[j]);
+      efficiency[0][j] = trueReco[0][j]/all[0][j];
+      printf("%f\n", all[0][j]);
+      //errEfficiency[0][j] = efficiency[i][j]* TMath::Sqrt((errTrueReco[i][j]/trueReco[i][j]) * (errTrueReco[i][j]/trueReco[i][j])+(errAll[i][j]/all[i][j])*(errAll[i][j]/all[i][j]));
+      hEffVsPt[0]->SetBinContent(j, efficiency[0][j]);
+      //hEffVsPt[0]->SetBinError(j, errEfficiency[0][j]);
+
+    }
+    canvas[0] = new TCanvas(Form("c%d", 0), Form("%s efficiency", particles[0]), 1600, 800);
+    canvas[0]->cd();
+    hEffVsPt[0]->Draw();
+    fout->cd();
+    hEffVsPt[0]->Write(Form("%s efficiency", particles[0]));
+
+  }//for on i as index
+  //fout->Close();
+return;
+
 }
