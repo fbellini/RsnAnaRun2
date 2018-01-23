@@ -125,7 +125,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
 #else
    //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
    gROOT->LoadMacro("./ConfigPhiXeXe.C");
-   ConfigPhiXeXe(task, isMC, "test", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor);
+   ConfigPhiXeXe(task, isMC, "tpc3s", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor);
 
 #endif
    
