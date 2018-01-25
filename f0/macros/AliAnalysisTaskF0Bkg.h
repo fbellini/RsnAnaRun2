@@ -35,6 +35,10 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         AliPIDResponse*         fPIDResponse;
         TList*                  fOutputList;
         TH1I*                   fNEvents;
+        TH2F*                   fHistBeforePID1tpc;
+        TH2F*                   fHistBeforePID2tpc;
+        TH2F*                   fHistBeforePID1tof;
+        TH2F*                   fHistBeforePID2tof;
         TH2F*                   fHistPID1tpc;
         TH2F*                   fHistPID2tpc;
         TH2F*                   fHistPID1tof;
@@ -44,12 +48,14 @@ class AliAnalysisTaskF0Bkg : public AliAnalysisTaskSE
         TH2F*                   fAcceptedQualityEtaPt;
         TH2F*                   fAcceptedTOFMatchEtaPt;
         TH2F*                   fAcceptedTracksEtaPt;
-        TH2F*                   fGenMassVsPt[10];
-        TH2F*                   fRecoMassVsPt[10];
-        TH2F*                   fGenYVsPt[10];
-        TH2F*                   fRecoYVsPt[10];
-        TH2F*                   fGenEtaVsPt[10];
-        TH2F*                   fRecoEtaVsPt[10];
+        TH2F*                   fAcceptedPIDTOFMatchEtaPt;
+        TH2F*                   fAcceptedPIDnoTOFMatchEtaPt;
+        TH2F*                   fGenMassVsPt[9];
+        TH2F*                   fRecoMassVsPt[9];
+        TH2F*                   fGenYVsPt[9];
+        TH2F*                   fRecoYVsPt[9];
+        TH2F*                   fGenEtaVsPt[9];
+        TH2F*                   fRecoEtaVsPt[9];
         const static Char_t     fParticleName[][6];
         const static ULong_t    fPdgArray[];
 
