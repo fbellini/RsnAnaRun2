@@ -57,19 +57,20 @@ using namespace std;            // std namespace: so you can do things like 'cou
 
 ClassImp(AliAnalysisTaskF0Bkg) // classimp: necessary for root
 
-//f0PDG, omegaPDG, rhoPDG, etaPDG, etaPrimePDG, f1PDG, f2PDG, kstarPDG, k0s, phiPDG, pionPDG};
-const ULong_t AliAnalysisTaskF0Bkg::fPdgArray[]={9010221, 223, 113, 221, 331, 20223, 225, 313, 310, 333, 211};
+//f0PDG, omegaPDG, rhoPDG, etaPDG, etaPrimePDG, f2PDG, kstarPDG, k0s, phiPDG, pionPDG};
+const ULong_t AliAnalysisTaskF0Bkg::fPdgArray[]={9010221, 223, 113, 221, 331, 225, 313, 310, 333, 211};
 
-const Char_t AliAnalysisTaskF0Bkg::fParticleName[][6]={"f0","omega","rho","eta","etaPr","f1","f2","kStar","k0s", "phi", "pion"};
+const Char_t AliAnalysisTaskF0Bkg::fParticleName[][6]={"f0","omega","rho","eta","etaPr","f2","kStar","k0s", "phi", "pion"};
 
 
 AliAnalysisTaskF0Bkg::AliAnalysisTaskF0Bkg() : AliAnalysisTaskSE(),
-fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0)
+fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistBeforePID1tpc(0), fHistBeforePID2tpc(0), fHistBeforePID1tof(0), fHistBeforePID2tof(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0), fAcceptedPIDTOFMatchEtaPt(0), fAcceptedPIDnoTOFMatchEtaPt(0)
+
 {
   // default constructor, don't allocate memory here!
   // this is used by root for IO purposes, it needs to remain empty
 
-  for(Int_t i=0; i<10; i++){
+  for(Int_t i=0; i<9; i++){
     fGenMassVsPt[i]=0x0;
     fRecoMassVsPt[i]=0x0;
     fGenYVsPt[i]=0x0;
@@ -80,11 +81,12 @@ fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0
 }
 //_____________________________________________________________________________
 AliAnalysisTaskF0Bkg::AliAnalysisTaskF0Bkg(const char* name) : AliAnalysisTaskSE(name),
-fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0)
+fESD(0), fOutputList(0), fNEvents(0), fMCEvent(0), fMCStack(0), fTrackFilter(0x0), fPIDResponse(0), fHistBeforePID1tpc(0), fHistBeforePID2tpc(0), fHistBeforePID1tof(0), fHistBeforePID2tof(0), fHistPID1tpc(0), fHistPID2tpc(0), fHistPID1tof(0), fHistPID2tof(0), fNoSelTracksEtaPt(0), fAcceptedGeomAccEtaPt(0), fAcceptedQualityEtaPt(0), fAcceptedTOFMatchEtaPt(0), fAcceptedTracksEtaPt(0), fAcceptedPIDTOFMatchEtaPt(0), fAcceptedPIDnoTOFMatchEtaPt(0)
+
 {
   // constructor
 
-  for(Int_t i=0; i<10; i++){
+  for(Int_t i=0; i<9; i++){
     fGenMassVsPt[i]=0x0;
     fRecoMassVsPt[i]=0x0;
     fGenYVsPt[i]=0x0;
@@ -117,6 +119,22 @@ AliAnalysisTaskF0Bkg::~AliAnalysisTaskF0Bkg()
  if (fNEvents){
   delete fNEvents;
   fNEvents = 0;
+ }
+ if (fHistBeforePID1tpc){
+  delete fHistBeforePID1tpc;
+  fHistBeforePID1tpc = 0;
+ }
+ if (fHistBeforePID2tpc){
+  delete fHistBeforePID2tpc;
+  fHistBeforePID2tpc = 0;
+ }
+ if (fHistBeforePID1tof){
+  delete fHistBeforePID1tpc;
+  fHistBeforePID1tpc = 0;
+ }
+ if (fHistBeforePID2tof){
+  delete fHistBeforePID2tpc;
+  fHistBeforePID2tpc = 0;
  }
  if (fHistPID1tpc){
   delete fHistPID1tpc;
@@ -154,6 +172,14 @@ AliAnalysisTaskF0Bkg::~AliAnalysisTaskF0Bkg()
   delete fAcceptedTracksEtaPt;
   fAcceptedTracksEtaPt = 0;
  }
+ if (fAcceptedPIDTOFMatchEtaPt){
+  delete fAcceptedPIDTOFMatchEtaPt;
+  fAcceptedPIDTOFMatchEtaPt = 0;
+ }
+ if (fAcceptedPIDnoTOFMatchEtaPt){
+  delete fAcceptedPIDnoTOFMatchEtaPt;
+  fAcceptedPIDnoTOFMatchEtaPt = 0;
+ }
  if(fOutputList) {
     delete fOutputList;     // at the end of your task, it is deleted from memory by calling this function
   }
@@ -162,7 +188,6 @@ AliAnalysisTaskF0Bkg::~AliAnalysisTaskF0Bkg()
 void AliAnalysisTaskF0Bkg::UserCreateOutputObjects()
 {
   // create output objects
-
   AliAnalysisManager *man=AliAnalysisManager::GetAnalysisManager();
   if (!man)  AliFatal("Analysis manager needed");
   AliInputEventHandler *inputHandler=dynamic_cast<AliInputEventHandler*>(man->GetInputEventHandler());
@@ -188,13 +213,22 @@ void AliAnalysisTaskF0Bkg::UserCreateOutputObjects()
   fNEvents->GetXaxis()->SetBinLabel(8, "z_{vtx} out range");
   fOutputList->Add(fNEvents);
 
-  fHistPID1tpc = new TH2F("fHistPID1tpc", "N sigma vs pT; #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -4., 4.);
+  //PID check histos
+  fHistBeforePID1tpc = new TH2F("fHistBeforePID1tpc", "N sigma vs pT (TPC no PID); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
+  fOutputList->Add(fHistBeforePID1tpc);
+  fHistBeforePID2tpc = new TH2F("fHistBeforePID2tpc", "N sigma vs pT (TPC no PID); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
+  fOutputList->Add(fHistBeforePID2tpc);
+  fHistBeforePID1tof = new TH2F("fHistBeforePID1tof", "N sigma vs pT (TOF no PID); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
+  fOutputList->Add(fHistBeforePID1tof);
+  fHistBeforePID2tof = new TH2F("fHistBeforePID2tof", "N sigma vs pT (TOF no PID); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
+  fOutputList->Add(fHistBeforePID2tof);
+  fHistPID1tpc = new TH2F("fHistPID1tpc", "N sigma vs pT (TPC); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
   fOutputList->Add(fHistPID1tpc);
-  fHistPID2tpc = new TH2F("fHistPID2tpc", "N sigma vs pT; #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -4., 4.);
+  fHistPID2tpc = new TH2F("fHistPID2tpc", "N sigma vs pT (TPC); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
   fOutputList->Add(fHistPID2tpc);
-  fHistPID1tof = new TH2F("fHistPID1tof", "N sigma vs pT; #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -4., 4.);
+  fHistPID1tof = new TH2F("fHistPID1tof", "N sigma vs pT (TOF); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
   fOutputList->Add(fHistPID1tof);
-  fHistPID2tof = new TH2F("fHistPID2tof", "N sigma vs pT; #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -4., 4.);
+  fHistPID2tof = new TH2F("fHistPID2tof", "N sigma vs pT (TOF); #it{p}_{T} (GeV/#it{c}); #it{N #sigma}", 220, 0., 11., 800, -5., 5.);
   fOutputList->Add(fHistPID2tof);
 
   fNoSelTracksEtaPt = new TH2F("fNoSelTracksEtaPt", "#eta vs. pT - no selected tracks; #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
@@ -209,10 +243,16 @@ void AliAnalysisTaskF0Bkg::UserCreateOutputObjects()
   fAcceptedTOFMatchEtaPt = new TH2F("fAcceptedTOFMatchEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + TOF match); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
   fOutputList->Add(fAcceptedTOFMatchEtaPt);
 
-  fAcceptedTracksEtaPt = new TH2F("fAcceptedTracksEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + TOF match + PID); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fAcceptedTracksEtaPt = new TH2F("fAcceptedTracksEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + PID); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
   fOutputList->Add(fAcceptedTracksEtaPt);
 
-  for(Int_t j=0; j<10; j++){
+  fAcceptedPIDTOFMatchEtaPt = new TH2F("fAcceptedPIDTOFMatchEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + PID (TOF match)); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedPIDTOFMatchEtaPt);
+
+  fAcceptedPIDnoTOFMatchEtaPt = new TH2F("fAcceptedPIDnoTOFMatchEtaPt", "#eta vs. pT - accepted tracks (geom acceptance + 2011 std cuts + PID (no TOF match)); #eta; #it{p}_{T} (GeV/#it{c})", 600, -3., 3., 220, 0., 11.);
+  fOutputList->Add(fAcceptedPIDnoTOFMatchEtaPt);
+
+  for(Int_t j=0; j<9; j++){
     fGenMassVsPt[j]= new TH2F(Form("fGenMassVsPt_%s",fParticleName[j]), Form("generated %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
     fRecoMassVsPt[j] = new TH2F(Form("fRecoMassVsPt_%s",fParticleName[j]), Form("reconstructed %s; M_{#pi#pi} (GeV/#it{c}^{2}); #it{p}_{T} (GeV/#it{c})", fParticleName[j]), 1200, 0.3, 1.5, 220, 0., 11.);
     fGenYVsPt[j] = new TH2F(Form("fGenYVsPt_%s",fParticleName[j]), Form("generated %s rapidity; #it{p}_{T} (GeV/#it{c}); #it{y}", fParticleName[j]), 220, 0., 11., 14, -0.7, 0.7);
@@ -286,7 +326,7 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
     if (TMath::Abs((trackMC->Eta()))>0.8) continue;
     if (TMath::Abs((trackMC->Pt()))<0.15) continue;
 
-    for(Int_t index=0; index<10; index++){
+    for(Int_t index=0; index<9; index++){
       if (pdgTest==fPdgArray[index]){
         vMC.SetXYZM(trackMC->Px(), trackMC->Py(), trackMC->Pz(), piMass);
         if (fabs(vMC.Rapidity())>0.5) continue; //rapidity cut
@@ -301,154 +341,183 @@ void AliAnalysisTaskF0Bkg::UserExec(Option_t *)
   if(!fPIDResponse) Printf("::::: ERROR: no PID available.");
 
   Int_t iTracks = event->GetNumberOfTracks();           // see how many tracks there are in the event
-  for(Int_t k1 = 0; k1 < iTracks; k1++) {                 // loop over all these tracks
+  for(Int_t k1 = 0; k1 < iTracks; k1++) {               // loop over all the tracks
 
     AliESDtrack* track1 = static_cast<AliESDtrack*>(event->GetTrack(k1));
     if(!track1) continue;
 
-    fNoSelTracksEtaPt->Fill(track1->Eta(), track1->Pt());
+    fNoSelTracksEtaPt->Fill(track1->Eta(), track1->Pt()); //histo with all the tracks
 
+    //geometrical acceptance cuts
     if (TMath::Abs((track1->Eta()))>0.8) continue;
     if (TMath::Abs((track1->Pt()))<0.15) continue;
 
-    fAcceptedGeomAccEtaPt->Fill(track1->Eta(), track1->Pt());
+    fAcceptedGeomAccEtaPt->Fill(track1->Eta(), track1->Pt()); //histo after geometrical acceptance cut
 
-    if (!fTrackFilter->IsSelected(track1)) continue;
+    if (!fTrackFilter->IsSelected(track1)) continue; //std2011 cuts
 
-    fAcceptedQualityEtaPt->Fill(track1->Eta(), track1->Pt());
+    fAcceptedQualityEtaPt->Fill(track1->Eta(), track1->Pt()); //histo after quality cut
 
     Int_t daug1Label = track1->GetLabel();
     if (daug1Label < 0) continue;
     TParticle*  daughter1 = fMCStack->Particle(daug1Label);
+    Int_t daug1PDG = daughter1->GetPdgCode();
+    if (TMath::Abs(daug1PDG) != fPdgArray[9]) continue; //check if the daughter is a pion
+
+    //look for the mother
     Int_t mother1Label = daughter1->GetFirstMother();
+    if (mother1Label < 0) continue;
     TParticle* mother1 = fMCStack->Particle(mother1Label);
     Long_t mother1PDG = mother1->GetPdgCode();
-    Int_t daug1PDG = daughter1->GetPdgCode();
-    //printf("%ld\n", daug1PDG);
-    if (TMath::Abs(daug1PDG) != 211) continue;
 
+    // loop over all the tracks having k1!=k2 to look for sisters
     for(Int_t k2 = k1+1; k2 < iTracks; k2++){
       if (k2!=k1){
         AliESDtrack* track2 = static_cast<AliESDtrack*>(event->GetTrack(k2));
         if(!track2)continue;
+        if (track2->Charge()==track1->Charge())continue; //check if the daughters have the same charge
 
+        //geometrical acceptance cuts
         if (TMath::Abs((track2->Eta()))>0.8) continue;
         if (TMath::Abs((track2->Pt()))<0.15) continue;
-        if (!fTrackFilter->IsSelected(track2)) continue;
+
+        if (!fTrackFilter->IsSelected(track2)) continue; //std 2011 cuts
 
         Int_t daug2Label = track2->GetLabel();
         if (daug2Label < 0) continue;
-        if(daug1Label == daug2Label) continue;
+        if (daug1Label == daug2Label) continue; //continue in case of taking the same tracks twice
         TParticle*  daughter2 = fMCStack->Particle(daug2Label);
+        Int_t daug2PDG = daughter2->GetPdgCode();
+        if (TMath::Abs(daug2PDG) != fPdgArray[9]) continue; //check if the daughter is a pion
+
+        //look for the mother (that is the resonance we are looking for)
         Int_t mother2Label = daughter2->GetFirstMother();
+        if (mother2Label < 0) continue;
         TParticle* mother2 = fMCStack->Particle(mother2Label);
         Long_t mother2PDG = mother2->GetPdgCode();
-        Int_t daug2PDG = daughter2->GetPdgCode();
 
+        //check if the two tracks are sisters
         if(mother1Label == mother2Label){
 
-          Double_t nSigmaTPCkPion1=-9999., nSigmaTPCkPion2=-9999., nSigmaTOFkPion1=-9999., nSigmaTOFkPion2=-9999., nSigmaTPCAcceptedkPion1=-9999., nSigmaTPCAcceptedkPion2=-9999., nSigmaTOFAcceptedkPion1=-9999., nSigmaTOFAcceptedkPion2=-9999.;
+        //if the mother is one of the particles of interest, go on!
+        for (Int_t iReco=0; iReco<9; iReco++){
+          if(TMath::Abs(mother1->GetPdgCode()) == fPdgArray[iReco]){
 
-          Int_t PIDMethod = 4;
+            //check if the resonance (mother) is primary
+            Int_t grandmotherLabel = mother1->GetFirstMother();
+            if (grandmotherLabel<0) continue;
+            TParticle* grandmother= fMCStack->Particle(grandmotherLabel);
+            Long_t grandmotherPDG=grandmother->GetPdgCode();
+            if(grandmotherPDG > 10) continue;
 
-          /* PIDMethod = 1: 2sTPC_3sTOFveto; PIDMethod = 2: 3sTPC_3sTOFveto; PIDMethod = 3: 2sTPC_4sTOFveto; PIDMethod = 4: 2sTPC; PIDMethod = 5: 2sTOF */
+            //apply PID cuts
+            Double_t nSigmaTPCkPion1=-9999., nSigmaTPCkPion2=-9999., nSigmaTOFkPion1=-9999., nSigmaTOFkPion2=-9999., nSigmaTPCAcceptedkPion1=-9999., nSigmaTPCAcceptedkPion2=-9999., nSigmaTOFAcceptedkPion1=-9999., nSigmaTOFAcceptedkPion2=-9999.;
 
-          nSigmaTPCkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
-          nSigmaTOFkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
-          Bool_t TOFmatch1 = IsTOFMatched(track1);
-          nSigmaTPCkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
-          nSigmaTOFkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
-          Bool_t TOFmatch2 = IsTOFMatched(track2);
+            /* PIDMethod = 1: 2sTPC_3sTOFveto; PIDMethod = 2: 3sTPC_3sTOFveto; PIDMethod = 3: 2sTPC_4sTOFveto; PIDMethod = 4: 2sTPC; PIDMethod = 5: 2sTOF */
+            Int_t PIDMethod = 1;
 
-          if(TOFmatch1){
-            fAcceptedTOFMatchEtaPt->Fill(track1->Eta(), track1->Pt());
-          }
+            nSigmaTPCkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
+            nSigmaTOFkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
+            Bool_t TOFmatch1 = IsTOFMatched(track1);
+            nSigmaTPCkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
+            nSigmaTOFkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
+            Bool_t TOFmatch2 = IsTOFMatched(track2);
 
-          switch (PIDMethod) {
-            case 1 /*2sTPC_3sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 3.) & TOFmatch1) ){
-                 v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
-                 nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
-                 nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
-               }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 3.) & TOFmatch2) ){
-                 v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
-                 nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
-                 nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
-               }
-              break;
+            if(TOFmatch1){
+              fAcceptedTOFMatchEtaPt->Fill(track1->Eta(), track1->Pt()); //tracks matching the TOF
             }
-            case 2 /*3sTPC_3sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 3.) & (TMath::Abs(nSigmaTOFkPion1) < 3.) & TOFmatch1) ){
-                v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
-                nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
-                nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
-              }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 3.) & (TMath::Abs(nSigmaTOFkPion2) < 3.) & TOFmatch2) ){
-                v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
-                nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
-                nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
-              }
-              break;
-            }
-            case 3 /*2sTPC_4sTOFveto*/ : {
-              if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (!TOFmatch1)) | ((TMath::Abs(nSigmaTPCkPion1) < 2.) & (TMath::Abs(nSigmaTOFkPion1) < 4.) & TOFmatch1) ){
-                v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
-                nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
-                nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
-              }
-              if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (!TOFmatch2)) | ((TMath::Abs(nSigmaTPCkPion2) < 2.) & (TMath::Abs(nSigmaTOFkPion2) < 4.) & TOFmatch2) ){
-                v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
-                nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
-                nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
-              }
-              break;
-            }
-            case 4 /*2sTPC*/ : {
-              if ((TMath::Abs(nSigmaTPCkPion1) < 2.)) {
-                v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
-                nSigmaTPCAcceptedkPion1 = fPIDResponse->NumberOfSigmasTPC(track1, AliPID::kPion);
+
+            //check Nsigma distrubition before PID
+            fHistBeforePID1tpc->Fill(track1->Pt(), nSigmaTPCkPion1);
+            fHistBeforePID2tpc->Fill(track2->Pt(), nSigmaTPCkPion2);
+            fHistBeforePID1tof->Fill(track1->Pt(), nSigmaTOFkPion1);
+            fHistBeforePID2tof->Fill(track2->Pt(), nSigmaTOFkPion2);
+
+            Bool_t IsPIDAccepted1=kFALSE;
+            Bool_t IsPIDAccepted2=kFALSE;
+
+            switch (PIDMethod) {
+              case 1 /*2sTPC_3sTOFveto*/ : {
+                if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) && (!TOFmatch1)) || ((TMath::Abs(nSigmaTPCkPion1) < 5.) && (TMath::Abs(nSigmaTOFkPion1) < 3.) && TOFmatch1) ){
+                  IsPIDAccepted1=kTRUE;
                 }
-              if ((TMath::Abs(nSigmaTPCkPion2) < 2.)) {
-                v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
-                nSigmaTPCAcceptedkPion2 = fPIDResponse->NumberOfSigmasTPC(track2, AliPID::kPion);
+                if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) && (!TOFmatch2)) || ((TMath::Abs(nSigmaTPCkPion2) < 5.) && (TMath::Abs(nSigmaTOFkPion2) < 3.) && TOFmatch2) ){
+                  IsPIDAccepted2=kTRUE;
                 }
-              break;
-            }
-            case 5 /*2sTOF*/ : {
-              if ((TMath::Abs(nSigmaTOFkPion1) < 2.) & TOFmatch1) {
-                v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
-                nSigmaTOFAcceptedkPion1 = fPIDResponse->NumberOfSigmasTOF(track1, AliPID::kPion);
+                break;
+              }
+              case 2 /*3sTPC_3sTOFveto*/ : {
+                if ( ((TMath::Abs(nSigmaTPCkPion1) < 3.) && (!TOFmatch1)) || ((TMath::Abs(nSigmaTPCkPion1) < 5.) && (TMath::Abs(nSigmaTOFkPion1) < 3.) && TOFmatch1) ){
+                  IsPIDAccepted1=kTRUE;
                 }
-              if ((TMath::Abs(nSigmaTOFkPion2) < 2.) & TOFmatch2) {
-                v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
-                nSigmaTOFAcceptedkPion2 = fPIDResponse->NumberOfSigmasTOF(track2, AliPID::kPion);
+                if ( ((TMath::Abs(nSigmaTPCkPion2) < 3.) && (!TOFmatch2)) || ((TMath::Abs(nSigmaTPCkPion2) < 5.) && (TMath::Abs(nSigmaTOFkPion2) < 3.) && TOFmatch2) ){
+                  IsPIDAccepted2=kTRUE;
                 }
-              break;
+                break;
+              }
+              case 3 /*2sTPC_4sTOFveto*/ : {
+                if ( ((TMath::Abs(nSigmaTPCkPion1) < 2.) && (!TOFmatch1)) || ((TMath::Abs(nSigmaTPCkPion1) < 5.) && (TMath::Abs(nSigmaTOFkPion1) < 4.) && TOFmatch1) ){
+                  IsPIDAccepted1=kTRUE;
+                }
+                if ( ((TMath::Abs(nSigmaTPCkPion2) < 2.) && (!TOFmatch2)) || ((TMath::Abs(nSigmaTPCkPion2) < 5.) && (TMath::Abs(nSigmaTOFkPion2) < 4.) && TOFmatch2) ){
+                  IsPIDAccepted2=kTRUE;
+                }
+                break;
+              }
+              case 4 /*2sTPC*/ : {
+                if ((TMath::Abs(nSigmaTPCkPion1) < 2.)) {
+                  IsPIDAccepted1=kTRUE;
+                }
+                if ((TMath::Abs(nSigmaTPCkPion2) < 2.)) {
+                  IsPIDAccepted2=kTRUE;
+                }
+                break;
+              }
+              case 5 /*2sTOF*/ : {
+                if ((TMath::Abs(nSigmaTPCkPion1) < 5.) && (TMath::Abs(nSigmaTOFkPion1) < 2.) && TOFmatch1) {
+                  IsPIDAccepted1=kTRUE;
+                }
+                if ((TMath::Abs(nSigmaTPCkPion2) < 5.) && (TMath::Abs(nSigmaTOFkPion2) < 2.) && TOFmatch2) {
+                  IsPIDAccepted2=kTRUE;
+                }
+                break;
+              }
+              default: {
+                Printf("Invalid method to perform the PID");
+                break;
+              }
             }
-            default: {
-              Printf("Invalid method to perform the PID");
-              break;
-            }
-          }
 
-          vSum = v1+v2;
+            if(IsPIDAccepted1 && IsPIDAccepted2){ //PID accepted for both tracks
 
-          fHistPID1tpc->Fill(v1.Pt(), nSigmaTPCAcceptedkPion1);
-          fHistPID2tpc->Fill(v2.Pt(), nSigmaTPCAcceptedkPion2);
-          fHistPID1tof->Fill(v1.Pt(), nSigmaTOFAcceptedkPion1);
-          fHistPID2tof->Fill(v2.Pt(), nSigmaTOFAcceptedkPion2);
-          fAcceptedTracksEtaPt->Fill(v1.PseudoRapidity(), v1.Pt());
+              v1.SetXYZM(track1->Px(), track1->Py(), track1->Pz(), piMass);
+              v2.SetXYZM(track2->Px(), track2->Py(), track2->Pz(), piMass);
+              vSum = v1+v2;
 
-          if ((TMath::Abs(vSum.Rapidity()))<0.5){ //rapidity cut
-            for (Int_t iReco=0; iReco<10; iReco++){
-              if(TMath::Abs(mother1->GetPdgCode()) == fPdgArray[iReco]){
+              //PID check histos
+              fHistPID1tpc->Fill(v1.Pt(), nSigmaTPCkPion1);
+              fHistPID2tpc->Fill(v2.Pt(), nSigmaTPCkPion2);
+              fHistPID1tof->Fill(v1.Pt(), nSigmaTOFkPion1);
+              fHistPID2tof->Fill(v2.Pt(), nSigmaTOFkPion2);
+
+              //all accepted tracks
+              fAcceptedTracksEtaPt->Fill(v1.PseudoRapidity(), v1.Pt());
+
+              if(TOFmatch1){
+                fAcceptedPIDTOFMatchEtaPt->Fill(v1.PseudoRapidity(), v1.Pt()); //TPC+TOF
+              } else {
+                fAcceptedPIDnoTOFMatchEtaPt->Fill(v1.PseudoRapidity(), v1.Pt()); //TPC only
+              }
+
+              //if the tracks pass the rapidity cut, fill histos with reconstructed pions
+              if ((TMath::Abs(vSum.Rapidity()))<0.5){
                 fRecoMassVsPt[iReco]->Fill(vSum.Mag(), vSum.Pt());
                 fRecoYVsPt[iReco]->Fill(vSum.Pt(), vSum.Rapidity());
                 fRecoEtaVsPt[iReco]->Fill(vSum.Pt(), vSum.PseudoRapidity());
-              } //histos
-            } //iReco
-          } //rapidity cut
+                } //rapidity cut
+              } //PID cut
+            } //histos
+          } //iReco
         } //if mom1=mom2
       } //i2Tracks
     }//if (k2!=k1)
@@ -539,8 +608,8 @@ Bool_t AliAnalysisTaskF0Bkg::IsGoodSPDvertexRes(const AliESDVertex * spdVertex)
 //_____________________________________________________________________________
 Bool_t AliAnalysisTaskF0Bkg::IsTOFMatched(AliESDtrack *track) {
   //This function checks whether a track has or has not a prolongation in the TOF. It returns true if the track has a matching hit in the TOF.
-  bool hasTOFout  = track->GetStatus() & AliESDtrack::kTOFout;
-  bool hasTOFtime = track->GetStatus() & AliESDtrack::kTIME;
-  bool hasTPCout = track->GetStatus() & AliESDtrack::kTPCout;
+  bool hasTOFout  = track->GetStatus() && AliESDtrack::kTOFout;
+  bool hasTOFtime = track->GetStatus() && AliESDtrack::kTIME;
+  bool hasTPCout = track->GetStatus() && AliESDtrack::kTPCout;
   return (hasTOFout && hasTOFtime && hasTPCout);
 }
