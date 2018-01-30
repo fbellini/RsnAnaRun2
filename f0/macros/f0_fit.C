@@ -35,7 +35,7 @@ void f0_fit(
     Bool_t useChi2 = kTRUE,
     Double_t xMinRange = 0.8,
     Double_t xMaxRange = 1.3,
-    Int_t fitMethod = 2
+    Int_t fitMethod = 4
     /*fitMethod allows to chose the function to perform f0 fit
   list of matches
   1 -> Breit Wigner
@@ -83,7 +83,7 @@ void f0_fit(
     pT[z] = bins->GetBinLowEdge(z + 1);
   }
 
-  TFile* fout = TFile::Open("f0_fit_2sTPC_3sTOFveto_relBW_mFree_GammaFixed.root", "RECREATE");
+  TFile* fout = TFile::Open("f0_fit_2sTPC_3sTOFveto_Flatte_mFree_GammaFree.root", "RECREATE");
   //TFile* fout = TFile::Open("f0_fit_3sTPC_3sTOFveto.root", "RECREATE");
   //TFile* fout = TFile::Open("f0_fit_2sTPC_4sTOFveto.root", "RECREATE");
   //TFile* fout = TFile::Open("f0_fit_2sTOF.root", "RECREATE");
@@ -149,7 +149,7 @@ void f0_fit(
       plot->Draw("e");
       canvas[ibin]->cd(2);
       textFit->Draw();
-      canvas[ibin]->Print(Form("fit_method%d_%2.1f<pT<%2.1f_mFree_GammaFixed.png", fitMethod, pT[ibin], pT[ibin + 1]));
+      canvas[ibin]->Print(Form("fit_method%d_%2.1f<pT<%2.1f_mFree_GammaFree.png", fitMethod, pT[ibin], pT[ibin + 1]));
 
       //protection: check that fitParameters exists
       if (fitParameters) {
@@ -258,11 +258,20 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
 
   // f0 signal
   RooRealVar mF0("mF0", "mF0", 0.99, 0.96, 1.01); //f0(980) invariant mass = 990 /pm 20 MeV
-  RooRealVar sigmaF0("sigmaF0", "sigmaF0", 0.003, 0., 0.01);
   RooRealVar widthF0("widthF0", "widthF0", 0.05/*, 0.01, 0.1*/);
+  RooRealVar sigmaF0("sigmaF0", "sigmaF0", 0.003, 0., 0.01);
+  RooRealVar g0("g0", "g0", 199);
+  RooRealVar g1("g1", "g1", 199*3);
+  RooRealVar m0a("m0a", "m0a", 0.1396);
+  RooRealVar m0b("m0b", "m0b", 0.1396);
+  RooRealVar m1a("m1a", "m1a", 0.4937);
+  RooRealVar m1b("m1b", "m1b", 0.4937);
+
   RooBreitWigner sigBW("sigBW", "sigBW", x, mF0, widthF0);
   RooRelBW sigRelBW("relBW", "relBW", x, mF0, widthF0);
   RooVoigtian sigVoig("sigVoig", "sigVoig", x, mF0, widthF0, sigmaF0, kFALSE);
+  RooFlatte sigFlatte("sigFlatte", "sigFlatte", x, mF0, g0, m0a, m0b, g1, m1a, m1b);
+
 
   // residual bkg - exponential(e^alpha) + exponential(e^beta)
   RooRealVar alpha("alpha", "alpha", alphaStart, alphaMin, alphaMax);
@@ -273,16 +282,19 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
   RooAddPdf sumbkg("sumbkg", "Background", RooArgList(bkg, bkg2), exp1Frac);
   RooRealVar bkgFrac("bkgFrac", "fraction of background", 0.5, 0., 1.);
 
+
   //model for signal + background for different p.d.f.
   RooRealVar nsig("nsig", "signal fraction", histo_integral * 0.5, 0., histo_integral);
   RooRealVar nbkg("nbkg", "background fraction", histo_integral * 0.5, 0., histo_integral);
   RooAddPdf funcBW("model1", "sig+bgBW", RooArgList(sumbkg, sigBW), RooArgList(nsig, nbkg));
   RooAddPdf funcRelBW("model2", "sig+bgRelBW", RooArgList(sumbkg, sigRelBW), RooArgList(nsig, nbkg));
   RooAddPdf funcVoig("model3", "sig+bgVoig", RooArgList(sumbkg, sigVoig), RooArgList(nsig, nbkg));
+  RooAddPdf funcFlatte("model4", "sig+bgFlatte", RooArgList(sumbkg, sigFlatte), RooArgList(nsig, nbkg));
 
   RooFitResult* r1;
   RooFitResult* r2;
   RooFitResult* r3;
+  RooFitResult* r4;
 
   //take fitStatus from outside -- do not redefine with: Int_t fitStatus[4] = { 1, 1, 1, 1 };
   if (!fitStatus) {
@@ -351,6 +363,23 @@ RooPlot* fit(TH1D* h1, Double_t xMinRange, Double_t xMaxRange, Int_t fitMethod, 
     Double_t sigmaVoigErr = sigmaF0.getError();
     fitParameters[13] = sigmaVoig;
     fitParameters[14] = sigmaVoigErr;
+    //RooArgSet* params = funcVoig.getParameters(x);
+    break;
+  }
+  case 4: {
+    RooChi2Var* chi2Var = new RooChi2Var("chi2Var", "chi2Var", funcFlatte, dh, kTRUE);
+    RooNLLVar* nll = new RooNLLVar("nll", "nll", funcFlatte, dh);
+    if (useChi2)
+      r4 = (RooFitResult*)fitChi2(chi2Var, fitStatus, minos, improve);
+
+    funcFlatte.plotOn(frame);
+    funcFlatte.paramOn(frame, Layout(0.4));
+    funcFlatte.plotOn(frame, Components(bkg), LineStyle(kDashed), LineColor(color[0]), LineWidth(4), Range(xMinRange, xMaxRange));
+    funcFlatte.plotOn(frame, Components(bkg2), LineStyle(kDashed), LineColor(color[1]), LineWidth(4), Range(xMinRange, xMaxRange));
+    funcFlatte.plotOn(frame, Components(sigFlatte), LineStyle(kDashed), LineColor(color[2]), LineWidth(4), Range(xMinRange, xMaxRange));
+    /*RooFitResult**/ r4 = funcFlatte.fitTo(dh, Save());
+    r4->Print("v");
+    r4->correlationMatrix().Print();
     //RooArgSet* params = funcVoig.getParameters(x);
     break;
   }
