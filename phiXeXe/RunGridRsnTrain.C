@@ -29,8 +29,8 @@ Usage:
 #endif
 
 TChain * CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1);
-void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 1, TString suffix="Xe",   Bool_t isLocalMerge = 0,
-			 TString dataset = "LHC17n", Bool_t isMC = 0, Bool_t isPP = 0, Int_t aodN = -1,
+void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 6, TString suffix="_ppmc",   Bool_t isLocalMerge = 0,
+			 TString dataset = "LHC15n", Bool_t isMC = 1, Bool_t isPP = 1, Int_t aodN = -1,
 			 TString username="fbellini", TString aliPhysicsVer = "vAN-20180120-1");
 
 void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t isLocalMerge,
@@ -83,7 +83,7 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   if (dataset.Contains("15n")) {
     runList = LHC15n;
     data = "LHC15n";
-    ppass = 4;
+    ppass = 3;
     sim =  "LHC17d8";
     yearData = 2015;
     yearMC = 2017;
@@ -305,8 +305,9 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon) pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
 
     //Resonance task
-    rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(kTRUE)"));
-
+    //rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(kTRUE)"));
+    rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddTaskF0.C(\"f0\", kTRUE)"));
+  
   } else {
     //Physics selection
     physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kFALSE, kTRUE)"));
@@ -321,7 +322,7 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon) pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
 
     //Resonance task
-    rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(kFALSE)"));
+    // rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(kFALSE)"));
   }
 
 #else
