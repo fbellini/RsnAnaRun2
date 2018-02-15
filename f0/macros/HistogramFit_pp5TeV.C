@@ -39,12 +39,18 @@ void HistogramFit_pp5TeV (TString infile = "f0_corrSpec_2sTPC_3sTOFveto_f0.root"
 {
   // retrieve reference values in the database PDG
   Int_t PDG = 9010221;
-  // retrieve reference values in the database PDG
-  // TDatabasePDG *pdg = TDatabasePDG::Instance();
-  // TParticlePDG *part       = pdg->GetParticle(PDG);
-  Double_t      pdgMass    = 0.990; // const Double_t pdgMass = 0.89594;
-  Double_t      pdgWidth   = 0.050; // 0.0487;// const Double_t pdgWidth = 0.0487;
+  Double_t      pdgMass = 0.; // const Double_t pdgMass = 0.89594;
+  Double_t      pdgWidth = 0.; // 0.0487;// const Double_t pdgWidth = 0.0487;
   
+  if (PDG == 9010221){
+    pdgMass = 0.990;
+    pdgWidth = 0.050;
+  } else {
+    TDatabasePDG *pdg = TDatabasePDG::Instance();
+    TParticlePDG *part = pdg->GetParticle(PDG);
+    pdgMass = part->Mass();
+    pdgWidth = part->Width();
+  }
   //Get Integrated YIELDS
   gStyle->SetOptStat(00001);
   gStyle->SetOptTitle(0);
@@ -110,7 +116,7 @@ void HistogramFit_pp5TeV (TString infile = "f0_corrSpec_2sTPC_3sTOFveto_f0.root"
   
   //draw
   TCanvas *c1 = new TCanvas(Form("c_%i",ic), "Fit",700,600);
-  TCanvas *c2 = new TCanvas(Form("cr_%i",ic), "Ratio fit to histogram",700,600);
+  TCanvas *c2 = new TCanvas(Form("cr_%i",ic), "Fit",700,600);
   data_stat->GetXaxis()->SetTitle(" p_{T} (GeV/c)");
   data_stat->GetYaxis()->SetTitle(" 1/N_{evt}*d^{2}N/dydp_{T} (GeV/c)^{-1}");   	
   c1->cd();
@@ -135,7 +141,12 @@ void HistogramFit_pp5TeV (TString infile = "f0_corrSpec_2sTPC_3sTOFveto_f0.root"
   myDummyResult->Draw("same");
   dummyResult->Draw("same");
   result->Draw("same");
-  // hresult->Draw();
+
+  TFile * fout = new TFile(Form("levyFit_%i.root",PDG),"recreate");
+  fout->cd();
+  c2->Write();
+  myLevyTsallis->Write();
+  fout->Close();
   return;
 }
 
