@@ -1,23 +1,15 @@
-/***************************************************************************
-// fbellini@cern.ch - created on 12 Nov 2017
+/*********************************************
+fbellini@cern.ch - created on 20 Nov 2017
+Macro to add task for phi analysis in XeXe
+*********************************************/
 
-// General macro to configure the RSN analysis task.
-// It calls all configs desired by the user, by means
-// of the boolean switches defined in the first lines.
-// ---
-// Inputs:
-//  1) flag to know if running on MC or data
-//  2) path where all configs are stored
-// ---
-// Returns:
-//  kTRUE  --> initialization successful
-//  kFALSE --> initialization failed (some config gave errors)
-//
-****************************************************************************/
+#if !defined (__CINT__) || defined (__CLING__)
+#include "ConfigPhiXeXe.C"
+#endif
 
 AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
-					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kFastTPCpidNsigma,
-					 Float_t     nsigmaK = 3.0,
+					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s,
+					 Float_t     nsigmaK = 2.0,
 					 Int_t       aodFilterBit = 5,
 					 TString     multEstimator = "AliMultSelection_V0M",  
 					 Int_t       nmix = 5,
@@ -61,27 +53,21 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    
    // set event mixing options
    task->UseContinuousMix();
-   //task->UseBinnedMix();
    task->SetNMix(nmix);
    task->SetMaxDiffVz(maxDiffVzMix);
    task->SetMaxDiffMult(maxDiffMultMix);
-   //   task->UseMC(isMC);
-   ::Info("AddTaskPhiXeXe", Form("Event mixing configuration: \n events to mix = %i \n max diff. vtxZ = cm %5.3f \n max diff multi = %5.3f \n", nmix, maxDiffVzMix, maxDiffMultMix));
+   TString message = Form("\nevents to mix = %i \n max diff. vtxZ = cm %5.3f \n max diff multi = %5.3f \n", nmix, maxDiffVzMix, maxDiffMultMix);
+   Printf("AddTaskPhiXeXe :::: Event mixing configuration: %s", message.Data());
    
    mgr->AddTask(task);
 
    //
    // -- EVENT CUTS (same for all configs) ---------------------------------------------------------
-   //  
-   // cut on primary vertex:
-   // - 2nd argument --> |Vz| range
-   // - 3rd argument --> minimum required number of contributors
-   // - 4th argument --> tells if TPC stand-alone vertexes must be accepted
-   
+   //   
    AliRsnCutEventUtils* cutEventUtils = new AliRsnCutEventUtils("cutEventUtils", kTRUE, rejectPileUp);
    cutEventUtils->SetRemovePileUppA2013(kFALSE);
    cutEventUtils->SetCheckAcceptedMultSelection();
-   ::Info("AddTaskPhiXeXe", Form(":::::::::::::::::: Centrality estimator: %s", multEstimator.Data()));
+   Printf("AddTaskPhiXeXe :::: Centrality estimator: %s", multEstimator.Data());
    
    AliRsnCutSet* eventCuts = new AliRsnCutSet("eventCuts", AliRsnTarget::kEvent);
    eventCuts->AddCut(cutEventUtils);
@@ -98,7 +84,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    Int_t multID = task->CreateValue(AliRsnMiniValue::kMult, kFALSE);
 
    AliRsnMiniOutput *outVtx = task->CreateOutput("eventVtx", "HIST", "EVENT");
-   outVtx->AddAxis(vtxID, 400, -20.0, 20.0);
+   outVtx->AddAxis(vtxID, 240, -12.0, 12.0);
    outVtx->AddAxis(multID, 20, 0.0, 100.0);
    
    AliRsnMiniOutput *outMult = task->CreateOutput("eventMult", "HIST", "EVENT");
@@ -119,21 +105,17 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    // CONFIG ANALYSIS
    // ------------------------------------------------------
 #if !defined (__CINT__) || defined (__CLING__)
-   
-   gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/ConfigPhiXeXe.C(task, isMC, \"\", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor)");
-
+   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, 15.0, enableMonitor);
 #else
    //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
    gROOT->LoadMacro("./ConfigPhiXeXe.C");
-   ConfigPhiXeXe(task, isMC, "tpc3s", cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, enableMonitor);
-
+   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, cutKaCandidate, nsigmaK, 15.0, enableMonitor);
 #endif
    
    //
    // -- CONTAINERS --------------------------------------------------------------------------------
    //
    TString outputFileName = AliAnalysisManager::GetCommonFileName();
-   // outputFileName += ":Rsn";
    Printf("AddTaskPhiXeXe - Set OutputFileName : \n %s\n", outputFileName.Data() );
    
    AliAnalysisDataContainer *output = mgr->CreateContainer(Form("RsnOut_%s",outNameSuffix.Data()), 
@@ -145,3 +127,4 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
    
    return task;
 }
+
