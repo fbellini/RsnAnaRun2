@@ -7,6 +7,7 @@ Macro to add task for phi analysis in XeXe
 #include "ConfigPhiXeXe.C"
 #endif
 
+AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Int_t selectTaskConfig = 0, Bool_t isMC = kFALSE, TString multEstimator = "AliMultSelection_V0M");
 AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
 					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s,
 					 Float_t     nsigmaK = 2.0,
@@ -14,7 +15,35 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
 					 TString     multEstimator = "AliMultSelection_V0M",  
 					 Int_t       nmix = 5,
 					 Bool_t      enableMonitor = kTRUE,
-					 TString     outNameSuffix = "default")
+					 TString     outNameSuffix = "tpc2s_tof3sveto");
+
+AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Int_t selectTaskConfig, Bool_t isMC, TString multEstimator)
+{
+  //Select cuts configuration and returns the corresponding add task
+  AliRsnMiniAnalysisTask * task = 0x0;
+  
+  switch (selectTaskConfig){
+  case 1 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3s_tof3sveto");
+    break;
+  case 2 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto4s, 2.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof4sveto");
+    break;
+  case 3 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTPCpidNsigma, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3s");
+    break;
+  case 4 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTOFpidNsigma, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tof3s");
+    break;
+  default:
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof3sveto");
+  }
+
+  return task;
+}
+
+
+AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate, Float_t nsigmaK, Int_t aodFilterBit, TString multEstimator, Int_t nmix, Bool_t enableMonitor, TString outNameSuffix)
 {  
   //-------------------------------------------
   // event cuts
