@@ -36,7 +36,8 @@ Bool_t ConfigPhiXeXe(AliRsnMiniAnalysisTask *task = 0x0,
   Int_t icutQuality = task->AddTrackCuts(cutSetQuality);
   
 #if defined (__CINT__) || !defined (__CLING__)
-    gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddMonitorOutput.C");
+  // gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/AddMonitorOutput.C");
+   gROOT->LoadMacro("./AddMonitorOutput.C");
 #endif
     
   //QA plots
@@ -297,7 +298,7 @@ Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut, Int_t customQu
   trkQualityCut->SetPtRange(0.15, 20.0);
   trkQualityCut->SetEtaRange(-0.8, 0.8);
   
-  Printf(Form("::::: SetCustomQualityCut:: using custom track quality cuts %i",customQualityCutsID));
+  Printf("::::: SetCustomQualityCut:: using custom track quality cuts %i",customQualityCutsID);
   trkQualityCut->Print();
   return kTRUE;
 }
