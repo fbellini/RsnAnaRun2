@@ -1,0 +1,5 @@
+*_cxx.d
+*_cxx.so
+*_cxx_ACLiC_dict_rdict.pcm
+*.root
+.DS_Store
