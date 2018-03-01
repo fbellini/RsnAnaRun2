@@ -4,26 +4,25 @@ void syst_contributions(TString date="27feb18")
   gStyle->SetOptStat(0);
 
   //set input name
-  TString corrFile = "F0_correctedSpectrum_wStat.root"; //CHANGE-ME
+  TString corrFile = "f0_corrSpec_2sTPC_3sTOFveto.root"; //CHANGE-ME
   TString hCorrYieldName = Form("hCorrectedSpectrum"); //CHANGE-ME
-  
+
   //pp analysis
-  Double_t cent[]={0.0, 100.0};   
-  Double_t pt[] = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 8.0, 10.00, 12.0, 15.0};  //CHANGE-ME
-  Int_t   npt  = sizeof(pt) / sizeof(pt[0]) - 1;   
-  Int_t   ncent  = sizeof(cent) / sizeof(cent[0]) - 1;
+  Double_t pt[] = {0.5, 1., 1.5, 2., 2.5, 3., 4., 5., 7., 9.};  //CHANGE-ME
+  Int_t   npt  = sizeof(pt) / sizeof(pt[0]) - 1;
+ //Int_t   ncent  = sizeof(cent) / sizeof(cent[0]) - 1;
   TString centLabel= "INEL";
-  
-  //cosmetics  
+
+  //cosmetics
   Color_t color = kBlack;
   Int_t marker = 20;
-  
+
   //create axis to reproduce the binning
   TAxis *ptbins = new TAxis(npt, pt);
-  TAxis *centbins = new TAxis(ncent, cent);
-  
-  //statistical 
-  TH1F * statunc = new TH1F(Form("statunc_%i",icent),Form("Statistical uncertainty",icent), npt, pt);
+//  TAxis *centbins = new TAxis(ncent, cent);
+
+  //statistical
+  TH1F * statunc = new TH1F("statunc","Statistical uncertainty", npt, pt);
   statunc->SetLineWidth(3);
   statunc->SetLineColor(kGreen+2);
   statunc->SetMarkerColor(kGreen+2);
@@ -31,19 +30,19 @@ void syst_contributions(TString date="27feb18")
   statunc->SetMarkerStyle(0);
 
   //total sys
-  TH1F * sum2 = new TH1F(Form("sum2_%i",icent),Form("Total sys. uncert.",icent), npt, pt);
+  TH1F * sum2 = new TH1F("sum2","Total sys. uncert.", npt, pt);
   sum2->SetLineWidth(3);
   sum2->SetLineColor(kRed);
   sum2->SetMarkerColor(kRed);
   sum2->SetLineStyle(1);
-  sum2->SetMarkerStyle(0); 
+  sum2->SetMarkerStyle(0);
 
   //pt dependent
-  TH1F * material = new TH1F(Form("material_%i",icent), Form("Material Budget"), npt, pt);
-  TH1F * hadrint = new TH1F(Form("hadrint_%i",icent),Form("Hadronic inter."), npt, pt);
-  TH1F * function = new TH1F(Form("function_%i",icent),Form("Res. bg. fit function",icent), npt, pt);
-  TH1F * fit = new TH1F(Form("fit_%i",icent),Form("Fit settings",icent), npt, pt);
-  TH1F * pid = new TH1F(Form("pid_%i",icent),Form("PID"), npt, pt);
+  TH1F * material = new TH1F("material", "Material Budget", npt, pt);
+  TH1F * hadrint = new TH1F("hadrint", "Hadronic inter.", npt, pt);
+  TH1F * function = new TH1F("functioni", "Res. bg. fit function", npt, pt);
+  TH1F * fit = new TH1F(Form("fit_%i","Fit settings", npt, pt);
+  TH1F * pid = new TH1F(Form("pid_%i","PID", npt, pt);
 
   //pt independent
   TH1F * tracking = new TH1F("tracking","Global tracking",npt, pt);
@@ -51,74 +50,62 @@ void syst_contributions(TString date="27feb18")
   tracking->SetLineColor(kOrange);
   tracking->SetMarkerColor(kOrange);
   tracking->SetLineStyle(9);
-  tracking->SetMarkerStyle(0); 
- 
+  tracking->SetMarkerStyle(0);
+
   TH1F * trackcuts = new TH1F("trackcuts","Track cuts",npt, pt);
   trackcuts->SetLineWidth(2);
   trackcuts->SetLineColor(kAzure+10);
   trackcuts->SetMarkerColor(kAzure+10);
   trackcuts->SetLineStyle(2);
-  trackcuts->SetMarkerStyle(0); 
+  trackcuts->SetMarkerStyle(0);
 
   TFile * fMaterial = TFile::Open(Form("%s/systMaterial.root",fPath.Data()));
   TH1F * dummyMT = (TH1F*) fMaterial->Get(Form("hSystVsPtPercentageOfCentral"));
-  material = (TH1F*) dummyMT->Clone("material"); 
+  material = (TH1F*) dummyMT->Clone("material");
   material->SetTitle("Material budget");
   material->SetLineWidth(4);
   material->SetLineColor(kPink+2);
   material->SetMarkerColor(kPink+2);
   material->SetLineStyle(3);
-  material->SetMarkerStyle(0); 
-   
+  material->SetMarkerStyle(0);
+
   TFile * fHadrSyst = TFile::Open(Form("%s/systHadrInt.root",fPath.Data()));
   TH1F * dummyHI = (TH1F*) fHadrSyst->Get(Form("hSystVsPtPercentageOfCentral"));
-  hadrint = (TH1F*) dummyHI->Clone("hadrint"); 
+  hadrint = (TH1F*) dummyHI->Clone("hadrint");
   hadrint->SetTitle("Hadronic int.");
   hadrint->SetLineWidth(2);
   hadrint->SetLineColor(kOrange+1);
   hadrint->SetMarkerColor(kOrange+1);
   hadrint->SetLineStyle(1);
-  hadrint->SetMarkerStyle(0); 
+  hadrint->SetMarkerStyle(0);
 
-  TString rangefile = "f0_FITsyst.root"; //CHANGE ME
-  TString sysHistoName = Form("histo"); //CHANGE ME
-  TFile * fRangeSyst = TFile::Open(rangefile.Data());
-  TH1F * dummyR = (TH1F*) fRangeSyst->Get(sysHistoName.Data());
-  Printf("Using histo %s / %s",fRangeSyst->GetName(),dummyR->GetName());
-  range = (TH1F*) dummyR->Clone("range"); 
-  range->SetTitle("Fit settings");
-  range->SetLineWidth(3);
-  range->SetLineColor(kPink+8);
-  range->SetMarkerColor(kPink+8);
-  range->SetLineStyle(8);
-  range->SetMarkerStyle(0);
 
-  TString fcnfile = "f0_FCNsyst.root";
-  sysHistoName = Form("histo"); //CHANGE ME
+  TString fcnfile = "f0_systematics_functions.root";
+  sysHistoName = Form("hFunctions"); //CHANGE ME
   TFile * fFuncSyst = TFile::Open(fcnfile.Data());
   TH1F * dummyF = (TH1F*) fFuncSyst->Get(sysHistoName.Data());
   Printf("Using histo %s / %s",fFuncSyst->GetName(),dummyF->GetName());
-  function = (TH1F*) dummyF->Clone("function"); 
+  function = (TH1F*) dummyF->Clone("function");
   function->SetTitle("Res. bg. fit function");
   function->SetLineWidth(2);
   function->SetLineColor(kBlue+2);
   function->SetMarkerColor(kBlue+2);
   function->SetLineStyle(1);
-  function->SetMarkerStyle(0); 
+  function->SetMarkerStyle(0);
 
-  TString PIDfile = "f0_PIDsyst.root";
-  sysHistoName = Form("histo"); //CHANGE ME
+  TString PIDfile = "f0_systematics_PID.root";
+  sysHistoName = Form("hPID"); //CHANGE ME
   TFile * fPidSyst = TFile::Open(PIDfile.Data());
   TH1F * dummyP = (TH1F*) fPidSyst->Get(sysHistoName.Data());
   Printf("Using histo %s / %s",fPidSyst->GetName(),dummyP->GetName());
-  pid = (TH1F*) dummyP->Clone("PID"); 
+  pid = (TH1F*) dummyP->Clone("PID");
   pid->SetTitle("PID");
   pid->SetLineWidth(3);
   pid->SetLineColor(kBlack);
   pid->SetMarkerColor(kBlack);
   pid->SetLineStyle(2);
-  pid->SetMarkerStyle(0); 
-  
+  pid->SetMarkerStyle(0);
+
   //ITS-TPC matching efficiency sys uncertainty in pp 5 TeV LHC15n
   //https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrackSystematicUncertaintyBookkeping
   //https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrackSystematicUncertainty
@@ -134,7 +121,7 @@ void syst_contributions(TString date="27feb18")
   //When considering a resonance in two-body decay, multiply the uncert. on the single track times 2
   //as the two daughters are considered independently tracked thus independently affected by the systemtics
   Double_t trackCuts_rsn = 0.025;
-  
+
   for (Int_t ii = 0;ii<npt;ii++){
     Int_t ibin = ii+1;
     if (pt[ibin] < 4.0) {
@@ -143,13 +130,13 @@ void syst_contributions(TString date="27feb18")
       tracking->SetBinContent(ibin, tracking_1trk2to7GeV*2.0*100.0);
     } else
       tracking->SetBinContent(ibin, tracking_1trkAbove7GeV*2.0*100.0);
-    
+
     trackcuts->SetBinContent(ibin, trackCuts_rsn*2.0*100.0);
   }
-  
+
   //sum correlated contributions in quadrature
-  Double_t syst_ptFullyCorr_sum2 = trackCuts_rsn*trackCuts_rsn; 
-  
+  Double_t syst_ptFullyCorr_sum2 = trackCuts_rsn*trackCuts_rsn;
+
   //estimate uncertainty per each pt bin
   for (Int_t ii = 0;ii<npt;ii++){
     Int_t ibin = ii+1;
@@ -163,18 +150,18 @@ void syst_contributions(TString date="27feb18")
 
     //tracking
     Double_t ptuncorr2 = tracking_sys*tracking_sys;
-    
+
    //track cuts
     ptuncorr2+=(trackCuts_rsn*trackCuts_rsn);
-    
+
     //fit range
     if (range_syst>0.0) {
-      ptuncorr2+=range_syst*range_syst;      
+      ptuncorr2+=range_syst*range_syst;
     }
- 
+
     //function res bg
     if (func_syst>0.0){
-      ptuncorr2+=func_syst*func_syst;      
+      ptuncorr2+=func_syst*func_syst;
    }
 
     //PID
@@ -191,24 +178,24 @@ void syst_contributions(TString date="27feb18")
     if (hadrint_syst>0.0) {
       ptuncorr2+=hadrint_syst*hadrint_syst;
     }
- 
-    Double_t totsyst = TMath::Sqrt(syst_ptFullyCorr_sum2 + ptuncorr2); 
+
+    Double_t totsyst = TMath::Sqrt(syst_ptFullyCorr_sum2 + ptuncorr2);
     sum2->SetBinContent(ibin, totsyst*100);
     Printf("bin %i tot. perc. %6.4f", ibin, totsyst*100.);
 
-    Double_t totsystUncorr = TMath::Sqrt(ptuncorr2);  
+    Double_t totsystUncorr = TMath::Sqrt(ptuncorr2);
     //Printf("totsystUncorr = %f", totsystUncorr);
     sum2_uncorr->SetBinContent(ibin, totsystUncorr*100.);
   }
-  
+
   //assign syst err to data
   TFile * fdata = TFile::Open(Form("%s/%s",fPathCorr.Data(),corrFile.Data()));
-  TH1F * data = (TH1F*) fdata->Get(Form("%s",hCorrYieldName.Data()));  
-  TH1F * data_Wsyst = (TH1F*) data->Clone(Form("%s%i_syst",hCorrYieldName.Data(),icent));
-  TH1F * data_Wsyst_uncorr = (TH1F*) data->Clone(Form("%s%i_syst_uncorr",hCorrYieldName.Data(),icent));
-  TH1F * data_Wsyst_Wstat = (TH1F*) data->Clone(Form("%s%i_syst_stat",hCorrYieldName.Data(),icent));
+  TH1F * data = (TH1F*) fdata->Get(Form("%s",hCorrYieldName.Data()));
+  TH1F * data_Wsyst = (TH1F*) data->Clone(Form("%s_syst",hCorrYieldName.Data()));
+  TH1F * data_Wsyst_uncorr = (TH1F*) data->Clone(Form("%s_syst_uncorr",hCorrYieldName.Data()));
+  TH1F * data_Wsyst_Wstat = (TH1F*) data->Clone(Form("%s_syst_stat",hCorrYieldName.Data()));
 
-  for (Int_t ii = 1;ii<npt+1;ii++){   
+  for (Int_t ii = 1;ii<npt+1;ii++){
     Int_t ibin = ii;
     Double_t yd = data->GetBinContent(ibin);
     Double_t yd_stat = data->GetBinError(ibin);
@@ -227,7 +214,7 @@ void syst_contributions(TString date="27feb18")
     data_Wsyst_uncorr->SetBinContent(ibin,yd);
     data_Wsyst_uncorr->SetBinError(ibin, yd_syst_uncorr);
   }
-  
+
   //systematic uncertainty plot
   TCanvas *cs=new TCanvas("cs","Systematic uncertainty vs #it{p}_{T}", 750,600);
   cs->cd();
@@ -236,7 +223,7 @@ void syst_contributions(TString date="27feb18")
   sum2->GetXaxis()->SetTitle("#it{p}_{T} (GeV/#it{c})");
   sum2->GetYaxis()->SetRangeUser(0.01, 40);
   sum2->GetXaxis()->SetRangeUser(0.0, 6.9);
-  
+
   sum2->Draw();
   tracking->Draw("same");
   range->Draw("same");
@@ -250,17 +237,17 @@ void syst_contributions(TString date="27feb18")
   autolegry->SetFillColor(kWhite);
   autolegry->SetLineColor(kWhite);
   autolegry->SetTextFont(42);
-  autolegry->SetNColumns(2); 
+  autolegry->SetNColumns(2);
   data->SetMarkerColor(color);
   data->SetLineColor(color);
   data->SetMarkerStyle(marker);
   data->SetMarkerSize(0.7);
   data->SetLineWidth(2);
   data->SetTitle(Form("%s (stat. uncert.)",centLabel.Data()));
-  data_Wsyst->SetMarkerColor(color[ipid][icent]);	       
+  data_Wsyst->SetMarkerColor(color[ipid]);
   data_Wsyst->SetFillStyle(0); //Color(color2[icent]);
   data_Wsyst->SetLineWidth(1); //Color(color2[icent]);
-  data_Wsyst->SetLineColor(color[ipid][icent]);
+  data_Wsyst->SetLineColor(color[ipid]);
   data_Wsyst->SetMarkerStyle(0);
   data_Wsyst->SetOption("E2");
   data_Wsyst->SetTitle(Form("%s (syst. uncert.)",centLabel.Data()));
@@ -270,7 +257,7 @@ void syst_contributions(TString date="27feb18")
   cs->SaveAs(Form("%s.eps", imagefilename.Data()));
 
   //make-up
-  data_Wsyst_uncorr->SetMarkerColor(color);	       
+  data_Wsyst_uncorr->SetMarkerColor(color);
   data_Wsyst_uncorr->SetFillStyle(0); //Color(color2[icent]);
   data_Wsyst_uncorr->SetLineWidth(1); //Color(color2[icent]);
   data_Wsyst_uncorr->SetLineColor(color);
@@ -278,7 +265,7 @@ void syst_contributions(TString date="27feb18")
   data_Wsyst_uncorr->SetOption("E2");
   data_Wsyst_uncorr->SetTitle(Form("%s (syst. uncert., #it{p}_{T}-uncorr.)",centLabel.Data()));
 
-  data_Wsyst_Wstat->SetMarkerColor(color);	       
+  data_Wsyst_Wstat->SetMarkerColor(color);
   data_Wsyst_Wstat->SetFillStyle(0); //Color(color2[icent]);
   data_Wsyst_Wstat->SetLineWidth(1); //Color(color2[icent]);
   data_Wsyst_Wstat->SetLineColor(color);
@@ -294,7 +281,7 @@ void syst_contributions(TString date="27feb18")
   autolegry2->SetFillColor(kWhite);
   autolegry2->SetLineColor(kWhite);
   autolegry2->SetTextFont(42);
-  autolegry2->SetNColumns(1); 
+  autolegry2->SetNColumns(1);
   autolegry2->Draw();
 
   //save to out file
@@ -316,9 +303,8 @@ void syst_contributions(TString date="27feb18")
   data_Wsyst_Wstat->Write();
   cunc->Write();
   cs->Write();
-  fout->Close(); 
-  
-  return;
-  
-}
+  fout->Close();
 
+  return;
+
+}
