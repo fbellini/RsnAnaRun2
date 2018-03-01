@@ -59,7 +59,7 @@ void syst_contributions(TString date="27feb18")
   trackcuts->SetLineStyle(2);
   trackcuts->SetMarkerStyle(0);
 
-  TFile * fMaterial = TFile::Open(Form("%s/systMaterial.root",fPath.Data()));
+  TFile * fMaterial = TFile::Open(Form("systMaterial.root"));
   TH1F * dummyMT = (TH1F*) fMaterial->Get(Form("hSystVsPtPercentageOfCentral"));
   material = (TH1F*) dummyMT->Clone("material");
   material->SetTitle("Material budget");
@@ -69,7 +69,7 @@ void syst_contributions(TString date="27feb18")
   material->SetLineStyle(3);
   material->SetMarkerStyle(0);
 
-  TFile * fHadrSyst = TFile::Open(Form("%s/systHadrInt.root",fPath.Data()));
+  TFile * fHadrSyst = TFile::Open(Form("systHadrInt.root"));
   TH1F * dummyHI = (TH1F*) fHadrSyst->Get(Form("hSystVsPtPercentageOfCentral"));
   hadrint = (TH1F*) dummyHI->Clone("hadrint");
   hadrint->SetTitle("Hadronic int.");
@@ -189,7 +189,7 @@ void syst_contributions(TString date="27feb18")
   }
 
   //assign syst err to data
-  TFile * fdata = TFile::Open(Form("%s/%s",fPathCorr.Data(),corrFile.Data()));
+  TFile * fdata = TFile::Open(Form("%s", corrFile.Data()));
   TH1F * data = (TH1F*) fdata->Get(Form("%s",hCorrYieldName.Data()));
   TH1F * data_Wsyst = (TH1F*) data->Clone(Form("%s_syst",hCorrYieldName.Data()));
   TH1F * data_Wsyst_uncorr = (TH1F*) data->Clone(Form("%s_syst_uncorr",hCorrYieldName.Data()));
@@ -266,7 +266,7 @@ void syst_contributions(TString date="27feb18")
   data_Wsyst_uncorr->SetTitle(Form("%s (syst. uncert., #it{p}_{T}-uncorr.)",centLabel.Data()));
 
   data_Wsyst_Wstat->SetMarkerColor(color);
-  data_Wsyst_Wstat->SetFillStyle(0); //Color(color2[icent]);
+  data_Wsyst_Wstat->SetFillStyle(0); //Color(color2[icents]);
   data_Wsyst_Wstat->SetLineWidth(1); //Color(color2[icent]);
   data_Wsyst_Wstat->SetLineColor(color);
   data_Wsyst_Wstat->SetMarkerStyle(0);
