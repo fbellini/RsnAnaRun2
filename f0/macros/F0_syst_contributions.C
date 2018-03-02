@@ -81,7 +81,7 @@ void syst_contributions(TString date="27feb18")
 
 
   TString fcnfile = "f0_systematics_functions.root";
-  sysHistoName = Form("hFunctions"); //CHANGE ME
+  TString sysHistoName = "hFunctions"; //CHANGE ME
   TFile * fFuncSyst = TFile::Open(fcnfile.Data());
   TH1F * dummyF = (TH1F*) fFuncSyst->Get(sysHistoName.Data());
   Printf("Using histo %s / %s",fFuncSyst->GetName(),dummyF->GetName());
@@ -94,7 +94,7 @@ void syst_contributions(TString date="27feb18")
   function->SetMarkerStyle(0);
 
   TString PIDfile = "f0_systematics_PID.root";
-  sysHistoName = Form("hPID"); //CHANGE ME
+  sysHistoName = "hPID"; //CHANGE ME
   TFile * fPidSyst = TFile::Open(PIDfile.Data());
   TH1F * dummyP = (TH1F*) fPidSyst->Get(sysHistoName.Data());
   Printf("Using histo %s / %s",fPidSyst->GetName(),dummyP->GetName());
@@ -144,7 +144,6 @@ void syst_contributions(TString date="27feb18")
     Double_t tracking_sys = tracking->GetBinContent(ibin)/100.;
     Double_t material_syst = dummyMT->GetBinContent(ibin)/100.;
     Double_t hadrint_syst = dummyHI->GetBinContent(ibin)/100.;
-    Double_t range_syst = dummyR->GetBinContent(ibin)/100.;
     Double_t func_syst = dummyF->GetBinContent(ibin)/100.;
     Double_t pid_syst = dummyP->GetBinContent(ibin)/100.;
 
