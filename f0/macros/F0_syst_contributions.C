@@ -41,8 +41,8 @@ void syst_contributions(TString date="27feb18")
   TH1F * material = new TH1F("material", "Material Budget", npt, pt);
   TH1F * hadrint = new TH1F("hadrint", "Hadronic inter.", npt, pt);
   TH1F * function = new TH1F("functioni", "Res. bg. fit function", npt, pt);
-  TH1F * fit = new TH1F(Form("fit_%i","Fit settings", npt, pt);
-  TH1F * pid = new TH1F(Form("pid_%i","PID", npt, pt);
+  TH1F * fit = new TH1F("fit","Fit settings", npt, pt);
+  TH1F * pid = new TH1F("pid","PID", npt, pt);
 
   //pt independent
   TH1F * tracking = new TH1F("tracking","Global tracking",npt, pt);
@@ -153,11 +153,6 @@ void syst_contributions(TString date="27feb18")
    //track cuts
     ptuncorr2+=(trackCuts_rsn*trackCuts_rsn);
 
-    //fit range
-    if (range_syst>0.0) {
-      ptuncorr2+=range_syst*range_syst;
-    }
-
     //function res bg
     if (func_syst>0.0){
       ptuncorr2+=func_syst*func_syst;
@@ -183,8 +178,6 @@ void syst_contributions(TString date="27feb18")
     Printf("bin %i tot. perc. %6.4f", ibin, totsyst*100.);
 
     Double_t totsystUncorr = TMath::Sqrt(ptuncorr2);
-    //Printf("totsystUncorr = %f", totsystUncorr);
-    sum2_uncorr->SetBinContent(ibin, totsystUncorr*100.);
   }
 
   //assign syst err to data
@@ -207,11 +200,7 @@ void syst_contributions(TString date="27feb18")
     data_Wsyst_Wstat->SetBinError(ibin,TMath::Sqrt(yd_syst*yd_syst+yd_stat*yd_stat));
     Printf("bin %i     yield = %e     syst err = %e    stat err = %e", ibin, yd, yd_syst, yd_stat);
 
-    //uncorrelated wrt pt
-    Double_t perc_uncorr = sum2_uncorr->GetBinContent(ibin);
-    Double_t yd_syst_uncorr = yd*perc_uncorr/100.;
     data_Wsyst_uncorr->SetBinContent(ibin,yd);
-    data_Wsyst_uncorr->SetBinError(ibin, yd_syst_uncorr);
   }
 
   //systematic uncertainty plot
@@ -225,7 +214,6 @@ void syst_contributions(TString date="27feb18")
 
   sum2->Draw();
   tracking->Draw("same");
-  range->Draw("same");
   trackcuts->Draw("same");
   function->Draw("same");
   material->Draw("same");
@@ -243,10 +231,10 @@ void syst_contributions(TString date="27feb18")
   data->SetMarkerSize(0.7);
   data->SetLineWidth(2);
   data->SetTitle(Form("%s (stat. uncert.)",centLabel.Data()));
-  data_Wsyst->SetMarkerColor(color[ipid]);
+  data_Wsyst->SetMarkerColor(color);
   data_Wsyst->SetFillStyle(0); //Color(color2[icent]);
   data_Wsyst->SetLineWidth(1); //Color(color2[icent]);
-  data_Wsyst->SetLineColor(color[ipid]);
+  data_Wsyst->SetLineColor(color);
   data_Wsyst->SetMarkerStyle(0);
   data_Wsyst->SetOption("E2");
   data_Wsyst->SetTitle(Form("%s (syst. uncert.)",centLabel.Data()));
@@ -274,7 +262,6 @@ void syst_contributions(TString date="27feb18")
   TCanvas *cunc=new TCanvas("cunc","Summary of uncertainty vs p_{t}", 750,600);
   cunc->cd();
   sum2->Draw();
-  sum2_uncorr->Draw("HIST same");
   statunc->Draw("HIST same");
   TLegend * autolegry2 = (TLegend*)gPad->BuildLegend(0.25,0.65,0.88,0.88);
   autolegry2->SetFillColor(kWhite);
@@ -291,13 +278,11 @@ void syst_contributions(TString date="27feb18")
   tracking->Write();
   trackcuts->Write();
   pid->Write();
-  range->Write();
   function->Write();
   hadrint->Write();
   statunc->Write();
   data->Write();
   sum2->Write();
-  sum2_uncorr->Write();
   data_Wsyst->Write();
   data_Wsyst_Wstat->Write();
   cunc->Write();
