@@ -29,12 +29,12 @@ Usage:
 // #endif
 
 TChain * CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1);
-void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 6, TString suffix="_ppmc",   Bool_t isLocalMerge = 0,
-			 TString dataset = "LHC15n", Bool_t isMC = 1, Bool_t isPP = 1, Int_t aodN = -1,
-			 TString username="fbellini", TString aliPhysicsVer = "vAN-20180220-1");
+void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 6, TString suffix="Xe0328esd",   Bool_t isLocalMerge = 0,
+			 TString dataset = "LHC17n", Bool_t isMC = 0, Int_t aodN = -1,
+			 TString username="fbellini", TString aliPhysicsVer = "vAN-20180327-1");
 
 void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t isLocalMerge,
-		     TString dataset, Bool_t isMC, Bool_t isPP, Int_t aodN,
+		     TString dataset, Bool_t isMC, Int_t aodN,
 		     TString username, TString aliPhysicsVer)
 {
 
@@ -215,7 +215,9 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     plugin->SetMasterResubmitThreshold(10);
     plugin->SetTTL(50000);
     plugin->SetInputFormat("xml-single");
-    plugin->SetSplitMaxInputFileNumber(30);
+    if (isESD) plugin->SetSplitMaxInputFileNumber(20);
+    else plugin->SetSplitMaxInputFileNumber(10);
+    plugin->SetMaxMergeFiles(25);
     plugin->SetSplitMode("se");
   
     // Set properly the global flac to enable/disable local or plugin merging  
@@ -287,11 +289,13 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   if (!taskCDB) return;
   
   if (isMC) {
+    
+    Printf(":::::::::::: PROCESSING MC");
     //Physics selection
-    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE, kFALSE)"));
+    AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kTRUE, kTRUE)"));
     
     //Multiplicity selection
-    AliMultSelectionTask* taskMult = reinterpret_cast<AliMultSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C()"));//kTRUE, "B") 
+    AliMultSelectionTask* taskMult = reinterpret_cast<AliMultSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C()"));//kTRUE, "B")
     taskMult->SetSelectedTriggerClass(AliVEvent::kINT7);
     taskMult->SetUseDefaultMCCalib(isMC);
 
@@ -300,17 +304,19 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon)  AliAnalysisTask* pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
     
     //Resonance task
-    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(0, kTRUE)"));
-    AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kTRUE)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kTRUE)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(7, kTRUE)"));
+    //    AliRsnMiniAnalysisTask* rsnAnaTask4 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(11, kTRUE)"));
     
   } else {
-    
+
+    Printf(":::::::::::: PROCESSING DATA");
     //Physics selection
     AliPhysicsSelectionTask* physSelTask = reinterpret_cast<AliPhysicsSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C(kFALSE, kTRUE)"));
     physSelTask->SelectCollisionCandidates(AliVEvent::kINT7);
     
     //Multiplicity selection
-    AliMultSelectionTask* taskMult = reinterpret_cast<AliMultSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C()"));//kTRUE, "B") 
+    AliMultSelectionTask* taskMult = reinterpret_cast<AliMultSelectionTask*>(gInterpreter->ExecuteMacro("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C()"));//kTRUE, "B")
     taskMult->SetSelectedTriggerClass(AliVEvent::kINT7);
     
     //PID response
@@ -318,9 +324,9 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon) AliAnalysisTask* pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
 
     //Resonance task
-    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(0, kFALSE)"));
-    AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kFALSE)"));
-
+    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kFALSE)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(7, kFALSE)"));
+    //    AliRsnMiniAnalysisTask* rsnAnaTask4 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(11, kFALSE)"));
     ::Info("AnalysisSetup", "Setup successful");
 
   }
@@ -359,8 +365,10 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   if (enableMon) pidQAtask = (AliAnalysisTask*) AddTaskPIDqa();
 
   //Resonance task
-  AliRsnMiniAnalysisTask * rsnAnaTask1 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(0, isMC);
-  AliRsnMiniAnalysisTask * rsnAnaTask2 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(1, isMC);
+  AliRsnMiniAnalysisTask * rsnAnaTask1 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(-1, isMC);
+  AliRsnMiniAnalysisTask * rsnAnaTask2 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(9, isMC);
+  AliRsnMiniAnalysisTask * rsnAnaTask3 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(10, isMC);
+  AliRsnMiniAnalysisTask * rsnAnaTask4 = (AliRsnMiniAnalysisTask*) AddTaskPhiXeXe(11, isMC);
 
   ::Info("AnalysisSetup", "<<<<<<<<<<<<<<<<< TRAIN CONFIGURATION >>>>>>>>>>>>>>>>");
   if (physSelTask) ::Info("AnalysisSetup", "Added physics selection");
