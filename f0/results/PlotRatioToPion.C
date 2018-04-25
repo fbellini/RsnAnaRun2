@@ -1,5 +1,5 @@
 #include "RebinSpectrum.C"
-#include "/Users/fbellini/alice/macros/GetPlotRatio.C"
+#include "GetPlotRatio.C"
 
 Double_t LevyTsallis_Func(const Double_t *x, const Double_t *p);
 TF1 * LevyTsallis(const Char_t *name, Double_t mass, Double_t n = 5., Double_t C = 0.1, Double_t norm = 1.);
@@ -56,7 +56,8 @@ void PlotRatioToPion(Bool_t correctByBR = 1){
   //-------------
   //PIONS
   //-------------
-  TString filePiName = "/Users/fbellini/alice/pwglf-piKp5teV/SpectraAnalysisRun2/results/spectra/spectra-pag/Preliminaries/SQM2017/Spectra_ppLHC15n_Combined_Histograms.root";
+  ///Users/fbellini/alice/pwglf-piKp5teV/SpectraAnalysisRun2/results/spectra/spectra-pag/Preliminaries/SQM2017/
+  TString filePiName = "Spectra_ppLHC15n_Combined_Histograms.root";
   TFile *filePi = TFile::Open(filePiName.Data());
   if (!filePi) {Printf("Invalid file."); return;}
   TH1F *pi_syst = (TH1F*) ((TList*) filePi->Get("Summed_Pion_Sys"))->FindObject("hSpectraSummedPion_pp_Combined_MB");
@@ -224,7 +225,8 @@ void PlotRatioProtonToF0(Bool_t correctByBR)
   //-------------
   //PROTONS
   //-------------
-  TString fileProName = "/Users/fbellini/alice/pwglf-piKp5teV/SpectraAnalysisRun2/results/spectra/spectra-pag/Preliminaries/SQM2017/Spectra_ppLHC15n_Combined_Histograms.root";
+  ///Users/fbellini/alice/pwglf-piKp5teV/SpectraAnalysisRun2/results/spectra/spectra-pag/Preliminaries/SQM2017/
+  TString fileProName = "Spectra_ppLHC15n_Combined_Histograms.root";
   TFile *filePro = TFile::Open(fileProName.Data());
   if (!filePro) {Printf("Invalid file."); return;}
   TH1F *pro_syst = (TH1F*) ((TList*) filePro->Get("Summed_Proton_Sys"))->FindObject("hSpectraSummedProton_pp_Combined_MB");
@@ -242,7 +244,7 @@ void PlotRatioProtonToF0(Bool_t correctByBR)
   Beautify(rebinned[0], kBlue+1, 1, 2, 24, 1.0);
   Beautify(f0_Tot[0], kBlack, 1, 2, 20, 1.0);
   
-  TH1F* ratio = (TH1F*) GetPlotRatio(rebinned[0],f0_Tot[0]);//, 0, "", "f_{0}(980)", "(#pro^{+}+#pro^{-})/2.0", "d^{2}#it{N}_{INEL}/(d#it{y}d#it{p}_{T}) (GeV/#it{c})^{-1}");
+  TH1F* ratio = (TH1F*) GetPlotRatio(rebinned[0],f0_Tot[0]);
 
   TString text="Uncertainties: #sqrt{stat.^{2} + sys.^{2}}";
   TPaveText * pave = new TPaveText(0.4,0.1,0.4,0.14,"NDC");
@@ -263,7 +265,6 @@ void PlotRatioProtonToF0(Bool_t correctByBR)
   leg->SetTextSize(0.05);
   
   TPaveText * pave2 = new TPaveText(0.2, 0.8,0.5,0.9, "NDC");
-  //pave2->AddText("#bf{ALICE preliminary}");
   pave2->AddText("pp, #sqrt{#it{s}} = 5.02 TeV");
   if (!correctByBR) pave2->AddText("no BR correction");
   pave2->SetFillStyle(0);
@@ -351,7 +352,7 @@ void PlotRatiof0ToPhi(Bool_t correctByBR)
   //-------------
   //phi
   //-------------
-  TString filePhiName = "/Users/fbellini/alice/resonances/RsnAnaRun2/f0/results/phi_pp5_prelim.root";
+  TString filePhiName = "phi_pp5_prelim.root";
   TFile *filePhi = TFile::Open(filePhiName.Data());
   if (!filePhi) {Printf("Invalid file."); return;}
   TH1F *phi_syst = (TH1F*) filePhi->Get("h2");
@@ -362,7 +363,6 @@ void PlotRatiof0ToPhi(Bool_t correctByBR)
   
   TH1F * phi_Tot[1];
   phi_Tot[0] = (TH1F*) filePhi->Get("h3");
-  // (TH1F*) SumUncertInQuadrature(phi_stat, phi_syst);
   
   TF1 * myLevyTsallis = LevyTsallis("levy", 1.01965);
   RebinSpectrum(phi_Tot, rebinned, myLevyTsallis, 1, 1,  phi_Tot[0]);
@@ -371,7 +371,7 @@ void PlotRatiof0ToPhi(Bool_t correctByBR)
   myLevyTsallis->SetLineStyle(2);
   myLevyTsallis->SetLineColor(kBlack);
     
-  TH1F* ratio = (TH1F*) GetPlotRatio(f0_Tot[0],rebinned[0]);//, 0, "", "f_{0}(980)", "(#phi^{+}+#phi^{-})/2.0", "d^{2}#it{N}_{INEL}/(d#it{y}d#it{p}_{T}) (GeV/#it{c})^{-1}");
+  TH1F* ratio = (TH1F*) GetPlotRatio(f0_Tot[0],rebinned[0]);
 
   TString text="Uncertainties: #sqrt{stat.^{2} + sys.^{2}}";
   TPaveText * pave = new TPaveText(0.4,0.1,0.4,0.14,"NDC");
