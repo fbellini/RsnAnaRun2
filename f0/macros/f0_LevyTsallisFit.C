@@ -43,7 +43,7 @@ void f0_LevyTsallisFit(TString infile = "f0_corrSpec_2sTPC_3sTOFveto_f0.root", /
   Double_t      pdgWidth = 0.; // 0.0487;// const Double_t pdgWidth = 0.0487;
   
   if (PDG == 9010221){
-    pdgMass = 0.990;
+    pdgMass = 0.970;
     pdgWidth = 0.050;
   } else {
     TDatabasePDG *pdg = TDatabasePDG::Instance();
@@ -76,10 +76,10 @@ void f0_LevyTsallisFit(TString infile = "f0_corrSpec_2sTPC_3sTOFveto_f0.root", /
   dummyResult->SetFillColor(kWhite);
   dummyResult->SetTextAlign(12);
   //dummyResult->AddText(Form("Fit range: %4.2f-%4.2f GeV/c",rangefitMin,rangefitMax));
-  dummyResult->AddText(Form("dN/dy = %6.4f #pm %6.4f", myDummyResult->Parameter(3), myDummyResult->ParError(3) ));
-  dummyResult->AddText(Form("  T     = %6.4f #pm %6.4f", myDummyResult->Parameter(2), myDummyResult->ParError(2) ));
-  dummyResult->AddText(Form("  n     = %6.4f #pm %6.4f", myDummyResult->Parameter(1), myDummyResult->ParError(1) ));
-  dummyResult->AddText(Form("  m     = %6.4f", myDummyResult->Parameter(0)));
+  dummyResult->AddText(Form("dN/dy = %6.5f #pm %6.4f", myDummyResult->Parameter(3), myDummyResult->ParError(3) ));
+  dummyResult->AddText(Form("  T     = %6.5f #pm %6.4f", myDummyResult->Parameter(2), myDummyResult->ParError(2) ));
+  dummyResult->AddText(Form("  n     = %6.5f #pm %6.4f", myDummyResult->Parameter(1), myDummyResult->ParError(1) ));
+  dummyResult->AddText(Form("  m     = %6.5f", myDummyResult->Parameter(0)));
 
   //use spectra tools for mean pt and dN/dy
   TH1D* hresult = YieldMean(data_stat, data_syst, myLevyTsallis, rangefitMin, rangefitMax, 0.01, 0.1, "IRQ"); //IR0Q
