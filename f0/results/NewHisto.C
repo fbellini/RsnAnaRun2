@@ -10,10 +10,10 @@ void NewHisto(
   TString pionsSpectrum = "Spectra_ppLHC15n_Combined_Histograms.root",
   Double_t phiValue = 0.0257552,
   Double_t phiError = 0.0001,
-  Double_t protonsValue = 0.0257552,
-  Double_t protonsError = 0.0001,
-  Double_t pionsValue = 0.0257552,
-  Double_t pionsError = 0.0001
+  Double_t protonsValue = 0.1,
+  Double_t protonsError = 0.1,
+  Double_t pionsValue = 0.1,
+  Double_t pionsError = 0.1
 )
 {
 
@@ -67,17 +67,17 @@ void NewHisto(
   pro_Tot[0] = (TH1F*) SumErrorsInQuadrature(pro_stat, pro_syst);
   pro_Tot[0]->Scale(0.5); // (pi+ + pi-) / 2
 
-  Double_t binsProtons [] = {0., 0.4, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.1, 2.4, 2.7, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.0, 9.0, 12.0, 16.0, 20.0};
+  Double_t binsProtons [] = {0., 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0};
   Int_t nBinsProtons = sizeof(binsProtons) / sizeof(binsProtons[0]) - 1;
   TH1F* hNewSpectrumStatSystProtons = new TH1F("hNewSpectrumStatSystProtons", "hNewSpectrumStatSystProtons", nBinsProtons, binsProtons);
-  for (Int_t ibin2=0; ibin2<26; ibin2++){
+  for (Int_t ibin2=0; ibin2<54; ibin2++){
     if (ibin2==0){
-      hNewSpectrumStatSystProtons->SetBinContent(ibin2+1, 0.0257552);
-      hNewSpectrumStatSystProtons->SetBinError(ibin2+1, 0.0001);
+      hNewSpectrumStatSystProtons->SetBinContent(ibin2, protonsValue);
+      hNewSpectrumStatSystProtons->SetBinError(ibin2, protonsError);
     }
     else{
-    hNewSpectrumStatSystProtons->SetBinContent(ibin2+1, pro_Tot[0]->GetBinContent(ibin2));
-    hNewSpectrumStatSystProtons->SetBinError(ibin2+1, pro_Tot[0]->GetBinError(ibin2));
+    hNewSpectrumStatSystProtons->SetBinContent(ibin2, pro_Tot[0]->GetBinContent(ibin2));
+    hNewSpectrumStatSystProtons->SetBinError(ibin2, pro_Tot[0]->GetBinError(ibin2));
     }
   }
 
@@ -100,8 +100,8 @@ void NewHisto(
   TH1F* hNewSpectrumStatSystPions = new TH1F("hNewSpectrumStatSystPions", "hNewSpectrumStatSystPions", nBinsPions, binsPions);
   for (Int_t ibin3=0; ibin3<54; ibin3++){
     if (ibin3==0){
-      hNewSpectrumStatSystPions->SetBinContent(ibin3+1, 0.0257552);
-      hNewSpectrumStatSystPions->SetBinError(ibin3+1, 0.0001);
+      hNewSpectrumStatSystPions->SetBinContent(ibin3, pionsValue);
+      hNewSpectrumStatSystPions->SetBinError(ibin3, pionsError);
     }
     else{
     hNewSpectrumStatSystPions->SetBinContent(ibin3, pi_Tot[0]->GetBinContent(ibin3));
@@ -117,9 +117,6 @@ void NewHisto(
   Double_t minBin, maxBin;
   minBin=hNewSpectrum[0]->GetXaxis()->GetBinLowEdge(1);
   maxBin=hNewSpectrum[0]->GetXaxis()->GetBinUpEdge(1);*/
-
-
-
 
   //printf("%f, %f\n", minBin, maxBin);
 
