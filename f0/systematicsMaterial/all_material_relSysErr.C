@@ -1,0 +1,106 @@
+
+   Double_t xAxis7[36] = {0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3}; 
+   
+   TH1D *hPionMinusMinBiasSysErrRel = new TH1D("hPionMinusMinBiasSysErrRel","hPionMinusMinBiasSysErrRel",35, xAxis7);
+   hPionMinusMinBiasSysErrRel->SetBinContent(5,0.02593945);
+   hPionMinusMinBiasSysErrRel->SetBinContent(6,0.01247019);
+   hPionMinusMinBiasSysErrRel->SetBinContent(7,0.007665002);
+   hPionMinusMinBiasSysErrRel->SetBinContent(8,0.005950744);
+   hPionMinusMinBiasSysErrRel->SetBinContent(9,0.00533918);
+   hPionMinusMinBiasSysErrRel->SetBinContent(10,0.005121003);
+   hPionMinusMinBiasSysErrRel->SetBinContent(11,0.005043168);
+   hPionMinusMinBiasSysErrRel->SetBinContent(12,0.0050154);
+   hPionMinusMinBiasSysErrRel->SetBinContent(13,0.005005494);
+   hPionMinusMinBiasSysErrRel->SetBinContent(14,0.00500196);
+   hPionMinusMinBiasSysErrRel->SetBinContent(15,0.005000699);
+   hPionMinusMinBiasSysErrRel->SetBinContent(16,0.005000249);
+   hPionMinusMinBiasSysErrRel->SetBinContent(17,0.005000089);
+   hPionMinusMinBiasSysErrRel->SetBinContent(18,0.005000032);
+   hPionMinusMinBiasSysErrRel->SetBinContent(19,0.005000011);
+   hPionMinusMinBiasSysErrRel->SetBinContent(20,0.005000004);
+   hPionMinusMinBiasSysErrRel->SetBinContent(21,0.005000001);
+   hPionMinusMinBiasSysErrRel->SetBinContent(22,0.005);
+   hPionMinusMinBiasSysErrRel->SetBinContent(23,0.005);
+   hPionMinusMinBiasSysErrRel->SetBinContent(24,0.005);
+   hPionMinusMinBiasSysErrRel->SetBinContent(25,0.005);
+   hPionMinusMinBiasSysErrRel->SetMinimum(-0.0004351933);
+   hPionMinusMinBiasSysErrRel->SetMaximum(0.1230955);
+   hPionMinusMinBiasSysErrRel->SetEntries(21);
+
+   Double_t xAxis8[36] = {0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3}; 
+   
+   TH1D *hPionPlusMinBiasSysErrRel = new TH1D("hPionPlusMinBiasSysErrRel","hPionPlusMinBiasSysErrRel",35, xAxis8);
+   hPionPlusMinBiasSysErrRel->SetBinContent(5,0.02593945);
+   hPionPlusMinBiasSysErrRel->SetBinContent(6,0.01247019);
+   hPionPlusMinBiasSysErrRel->SetBinContent(7,0.007665002);
+   hPionPlusMinBiasSysErrRel->SetBinContent(8,0.005950744);
+   hPionPlusMinBiasSysErrRel->SetBinContent(9,0.00533918);
+   hPionPlusMinBiasSysErrRel->SetBinContent(10,0.005121003);
+   hPionPlusMinBiasSysErrRel->SetBinContent(11,0.005043168);
+   hPionPlusMinBiasSysErrRel->SetBinContent(12,0.0050154);
+   hPionPlusMinBiasSysErrRel->SetBinContent(13,0.005005494);
+   hPionPlusMinBiasSysErrRel->SetBinContent(14,0.00500196);
+   hPionPlusMinBiasSysErrRel->SetBinContent(15,0.005000699);
+   hPionPlusMinBiasSysErrRel->SetBinContent(16,0.005000249);
+   hPionPlusMinBiasSysErrRel->SetBinContent(17,0.005000089);
+   hPionPlusMinBiasSysErrRel->SetBinContent(18,0.005000032);
+   hPionPlusMinBiasSysErrRel->SetBinContent(19,0.005000011);
+   hPionPlusMinBiasSysErrRel->SetBinContent(20,0.005000004);
+   hPionPlusMinBiasSysErrRel->SetBinContent(21,0.005000001);
+   hPionPlusMinBiasSysErrRel->SetBinContent(22,0.005);
+   hPionPlusMinBiasSysErrRel->SetBinContent(23,0.005);
+   hPionPlusMinBiasSysErrRel->SetBinContent(24,0.005);
+   hPionPlusMinBiasSysErrRel->SetBinContent(25,0.005);
+   hPionPlusMinBiasSysErrRel->SetMinimum(-0.0004351933);
+   hPionPlusMinBiasSysErrRel->SetMaximum(0.1230955);
+ 
+	Double_t xAxis9[36] = {0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3}; 
+   
+   TH1D *hKaonMinusMinBiasSysErrRel = new TH1D("hKaonMinusMinBiasSysErrRel","hKaonMinusMinBiasSysErrRel",35, xAxis9);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(6,0.1106438);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(7,0.02137536);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(8,0.00753827);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(9,0.005393446);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(10,0.005060986);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(11,0.005009453);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(12,0.005001465);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(13,0.005000227);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(14,0.005000035);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(15,0.005000005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(16,0.005000001);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(17,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(18,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(19,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(20,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(21,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(22,0.005);
+   hKaonMinusMinBiasSysErrRel->SetBinContent(23,0.005);
+   hKaonMinusMinBiasSysErrRel->SetMinimum(-0.0004351933);
+   hKaonMinusMinBiasSysErrRel->SetMaximum(0.1230955);
+   hKaonMinusMinBiasSysErrRel->SetEntries(18);
+   hKaonMinusMinBiasSysErrRel->SetStats(0);
+
+   Double_t xAxis10[36] = {0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.2, 2.4, 2.6, 2.8, 3}; 
+   
+   TH1D *hKaonPlusMinBiasSysErrRel = new TH1D("hKaonPlusMinBiasSysErrRel","hKaonPlusMinBiasSysErrRel",35, xAxis10);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(6,0.1106438);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(7,0.02137536);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(8,0.00753827);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(9,0.005393446);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(10,0.005060986);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(11,0.005009453);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(12,0.005001465);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(13,0.005000227);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(14,0.005000035);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(15,0.005000005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(16,0.005000001);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(17,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(18,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(19,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(20,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(21,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(22,0.005);
+   hKaonPlusMinBiasSysErrRel->SetBinContent(23,0.005);
+   hKaonPlusMinBiasSysErrRel->SetMinimum(-0.0004351933);
+   hKaonPlusMinBiasSysErrRel->SetMaximum(0.1230955);
+   
