@@ -19,3 +19,6 @@ f0_PbPb/*.root
 f0_PbPb/std*
 f0_PbPb/*.sh
 f0_PbPb/.vscode/*
+*/OCDBFolderXML*
+*/*OCDBFolderXML*
+*/*EventStat_temp.root
