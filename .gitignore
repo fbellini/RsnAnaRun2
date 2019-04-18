@@ -8,6 +8,7 @@
 */*.eps
 */*.pdf
 */*.DS_Store
+*/.vscode/
 f0/PbPb/*
 f0/note/*.aux
 f0/note/*.log
@@ -17,4 +18,4 @@ f0/LevyFits
 f0_PbPb/*.root
 f0_PbPb/std*
 f0_PbPb/*.sh
-
+f0_PbPb/.vscode/*
