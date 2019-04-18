@@ -1,10 +1,20 @@
 */*.xml
+*/*.so
+*/*.d
+*/*.pcm
 */gdb*
 */*outputs_valid
 */*.png
 */*.eps
 */*.pdf
+*/*.DS_Store
 f0/PbPb/*
 f0/note/*.aux
 f0/note/*.log
+f0/data/
+f0/testjobs
+f0/LevyFits
+f0_PbPb/*.root
+f0_PbPb/std*
+f0_PbPb/*.sh
 
