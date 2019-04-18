@@ -1,0 +1,170 @@
+/*********************************************
+fbellini@cern.ch - created on 20 Nov 2017
+Macro to add task for phi analysis in XeXe
+*********************************************/
+
+#if !defined (__CINT__) || defined (__CLING__)
+#include "ConfigPhiXeXeLight.C"
+#endif
+
+AliRsnMiniAnalysisTask * AddTaskPhiXeXeLight(Int_t selectTaskConfig = 0, Bool_t isMC = kFALSE, TString multEstimator = "AliMultSelection_V0M");
+AliRsnMiniAnalysisTask * AddTaskPhiXeXeLight( Bool_t      isMC = kFALSE,
+					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s,
+					 Float_t     nsigmaTPC = 2.0,
+					 Float_t     nsigmaTOF = 2.0,
+					 Int_t       aodFilterBit = 5,
+					 TString     multEstimator = "AliMultSelection_V0M",  
+					 Int_t       nmix = 5,
+					 Bool_t      enableMonitor = kTRUE,
+					 TString     outNameSuffix = "tpc2s_tof3sveto");
+
+AliRsnMiniAnalysisTask * AddTaskPhiXeXeLight(Int_t selectTaskConfig, Bool_t isMC, TString multEstimator)
+{
+  //Select cuts configuration and returns the corresponding add task
+  AliRsnMiniAnalysisTask * task = 0x0;
+  
+  switch (selectTaskConfig){
+  case 3 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof3sveto");
+    break;
+  case 4 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kFastTPCpidNsigma, 2.0, 10.0,  5, multEstimator.Data(), 5, kTRUE, "tpc2s");
+    break;
+  case 6 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCpidphipp2015, 2.0, 10.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep");    
+    break;
+  case 7 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto");    
+    break;
+  case 8 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 4.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof4sveto5smism");
+    break;
+  case 9 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 3.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3sPtDep_tof3sveto5smism");
+    break;
+  case 10 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto5smism");
+    break;
+  case 11 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoElRejPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto_elRej");    
+    break;
+  default:
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXeLight(isMC, AliRsnCutSetDaughterParticle::kTPCTOFPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3s");    
+  }
+
+  return task;
+}
+
+
+AliRsnMiniAnalysisTask * AddTaskPhiXeXeLight(Bool_t isMC, AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate, Float_t nsigmaTPC, Float_t nsigmaTOF,
+					Int_t aodFilterBit, TString multEstimator, Int_t nmix, Bool_t enableMonitor, TString outNameSuffix)
+{
+  UInt_t      triggerMask=AliVEvent::kINT7;
+
+  //-------------------------------------------
+  // event cuts
+  //-------------------------------------------
+  Bool_t   rejectPileUp = kTRUE;
+  Double_t vtxZcut = 10.0;
+
+  //-------------------------------------------
+  // event mixing settings
+  //-------------------------------------------
+  Float_t     maxDiffVzMix = 1.0;
+  Float_t     maxDiffMultMix = 5.0;
+  
+  //-------------------------------------------
+  // pair cuts
+  //-------------------------------------------
+  Double_t    minYlab = -0.5;
+  Double_t    maxYlab = 0.5;
+
+  // -- INITIALIZATION ----------------------------------------------------------------------------
+  // retrieve analysis manager
+  AliAnalysisManager *mgr = AliAnalysisManager::GetAnalysisManager();
+   if (!mgr) {
+      ::Error("AddTaskPhiXeXe", "No analysis manager to connect to.");
+      return NULL;
+   } 
+
+   // create the task and configure 
+   TString taskName = Form("PhiXeXe%s", (isMC ? "MC" : "Data"));
+   
+   AliRsnMiniAnalysisTask *task = new AliRsnMiniAnalysisTask(taskName.Data(), isMC);
+   //task->SelectCollisionCandidates(triggerMask);//AOD
+   task->UseESDTriggerMask(AliVEvent::kINT7);//ESD
+   task->UseMultiplicity(multEstimator.Data());
+   Printf("AddTaskPhiXeXe :::: Centrality estimator: %s", multEstimator.Data());
+   
+   // set event mixing options
+   task->UseContinuousMix();
+   task->SetNMix(nmix);
+   task->SetMaxDiffVz(maxDiffVzMix);
+   task->SetMaxDiffMult(maxDiffMultMix);
+   TString message = Form("\nevents to mix = %i \n max diff. vtxZ = cm %5.3f \n max diff multi = %5.3f \n", nmix, maxDiffVzMix, maxDiffMultMix);
+   Printf("AddTaskPhiXeXe :::: Event mixing configuration: %s", message.Data());
+   
+   mgr->AddTask(task);
+
+   //
+   // -- EVENT CUTS (same for all configs) ---------------------------------------------------------
+   //   
+   AliRsnCutEventUtils* cutEventUtils = new AliRsnCutEventUtils("cutEventUtils", kTRUE, rejectPileUp);
+   // cutEventUtils->SetRemovePileUppA2013(kFALSE);
+   cutEventUtils->SetCheckAcceptedMultSelection();
+   
+   AliRsnCutSet* eventCuts = new AliRsnCutSet("eventCuts", AliRsnTarget::kEvent);
+   eventCuts->AddCut(cutEventUtils);
+   eventCuts->SetCutScheme(Form("%s", cutEventUtils->GetName()));
+   task->SetEventCuts(eventCuts); 
+
+   //
+   // -- EVENT-ONLY COMPUTATIONS -------------------------------------------------------------------
+   //   
+   // vertex
+   Int_t vtxID = task->CreateValue(AliRsnMiniValue::kVz, kFALSE);
+   // multiplicity or centrality
+   Int_t multID = task->CreateValue(AliRsnMiniValue::kMult, kFALSE);
+   AliRsnMiniOutput *outVtx = task->CreateOutput("eventVtx", "HIST", "EVENT");
+   outVtx->AddAxis(vtxID, 240, -12.0, 12.0);
+   outVtx->AddAxis(multID, 20, 0.0, 100.0);
+   AliRsnMiniOutput *outMult = task->CreateOutput("eventMult", "HIST", "EVENT");
+   outMult->AddAxis(multID, 100, 0.0, 100.0);
+
+   // ------------------------------------------------------
+   // PAIR CUTS (common to all resonances) 
+   // ------------------------------------------------------
+
+   AliRsnCutMiniPair *cutY = new AliRsnCutMiniPair("cutRapidity", AliRsnCutMiniPair::kRapidityRange);
+   cutY->SetRangeD(minYlab, maxYlab);
+   
+   AliRsnCutSet *cutsPair = new AliRsnCutSet("pairCuts", AliRsnTarget::kMother);
+   cutsPair->AddCut(cutY);
+   cutsPair->SetCutScheme(cutY->GetName());
+   
+   // ------------------------------------------------------
+   // CONFIG ANALYSIS
+   // ------------------------------------------------------
+#if !defined (__CINT__) || defined (__CLING__)
+   ConfigPhiXeXeLight(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, -1, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kFALSE, kFALSE);
+#else
+   gROOT->LoadMacro("./ConfigPhiXeXeLight.C");
+   ConfigPhiXeXeLight(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, -1, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kFALSE, kFALSE);
+#endif
+   
+   //
+   // -- CONTAINERS --------------------------------------------------------------------------------
+   //
+   TString outputFileName = AliAnalysisManager::GetCommonFileName();
+   Printf("AddTaskPhiXeXe - Set OutputFileName : \n %s\n", outputFileName.Data() );
+   
+   AliAnalysisDataContainer *output = mgr->CreateContainer(Form("RsnOut_%s",outNameSuffix.Data()), 
+							   TList::Class(), 
+							   AliAnalysisManager::kOutputContainer, 
+							   outputFileName);
+   mgr->ConnectInput(task, 0, mgr->GetCommonInputContainer());
+   mgr->ConnectOutput(task, 1, output);
+   
+   return task;
+}
+
