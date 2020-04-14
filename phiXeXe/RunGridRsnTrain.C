@@ -201,7 +201,7 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     // feel free to modify the list of include paths and libraries according to your need!
     plugin->AddIncludePath("-I. -I$ROOTSYS/include -I$ALICE_ROOT/include -I$ALICE_PHYSICS/include -I$ALICE_PHYSICS/OADB/ -I$ALICE_PHYSICS/OADB/COMMON -I$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY -g");
     //Order matters!!!!
-    plugin->SetAdditionalLibs("liblhapdf.so libEGPythia6.so libpythia6.so libAliPythia6.so AddTaskPhiXeXe.C ConfigPhiXeXe.C AddMonitorOutput.C");
+    plugin->SetAdditionalLibs("liblhapdf.so libEGPythia6.so libpythia6.so libAliPythia6.so AddTaskPhiXeXe.C ConfigPhiXeXe.C AddMonitorOutputPhiXeXe.C");
   
     // these have to be customized 
     plugin->SetAnalysisMacro(myMacroName.Data()); 
