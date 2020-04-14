@@ -97,7 +97,7 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     runList = LHC17n;
     data = "LHC17n";
     ppass = 1;
-    sim =  "LHC17j7";//LHC17j7_ZDCfix, LHC17j7_ZDCfix_extra
+    sim =  "LHC17j7_2"; //LHC17j7_ZDCfix, LHC17j7_ZDCfix_extra
     yearData = 2017;
     yearMC = 2017;
   }

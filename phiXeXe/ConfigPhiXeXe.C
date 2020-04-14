@@ -3,7 +3,7 @@ fbellini@cern.ch - last modified on 20/02/2018
 Configuration script forphi analysis with 2017 XeXe runs
 ****************************************************************************/
 #if !defined (__CINT__) || defined (__CLING__)
-#include "AddMonitorOutput.C"
+#include "AddMonitorOutputPhiXeXe.C"
 #endif
 
 Bool_t SetCustomQualityCut(AliRsnCutTrackQuality * trkQualityCut = NULL, Int_t customQualityCutsID = 0, Int_t customFilterBit = 0);
@@ -31,7 +31,6 @@ Bool_t ConfigPhiXeXe(AliRsnMiniAnalysisTask *task = 0x0,
 
   // set daughter cuts
   AliRsnCutSetDaughterParticle * cutSetKa;
-  
   AliRsnCutTrackQuality * trkQualityCut =  new AliRsnCutTrackQuality("myQualityCut");
   if (SetCustomQualityCut(trkQualityCut, customQualityCutsID, aodFilterBit)) {
     //Set custom quality cuts for systematic checks
@@ -62,8 +61,8 @@ Bool_t ConfigPhiXeXe(AliRsnMiniAnalysisTask *task = 0x0,
   //QA plots
   TString monitorOpt = "NoSIGN";
   if (enableMonitor){
-    AddMonitorOutput(isMC, cutSetQuality->GetMonitorOutput(), monitorOpt.Data());
-    AddMonitorOutput(isMC, cutSetKa->GetMonitorOutput(), monitorOpt.Data());    
+    AddMonitorOutputPhiXeXe(isMC, cutSetQuality->GetMonitorOutput(), monitorOpt.Data());
+    AddMonitorOutputPhiXeXe(isMC, cutSetKa->GetMonitorOutput(), monitorOpt.Data());    
   }  
   
   
