@@ -9,6 +9,10 @@
 */*.pdf
 */*.DS_Store
 */.vscode/
+*/*.jdl
+*/*/*.jdl
+*.root
+*/*.root
 f0/PbPb/*
 f0/note/*.aux
 f0/note/*.log
@@ -22,3 +26,11 @@ f0_PbPb/.vscode/*
 */OCDBFolderXML*
 */*OCDBFolderXML*
 */*EventStat_temp.root
+phiXeXe/steer/RunPhiXe*.sh
+phiXeXe/steer/RunPhiXe*.C
+phiXeXe/steer/*.xml
+phiXeXe/steer/RunPhiXe*.root
+phiXeXe/RunPhiXe*.sh
+phiXeXe/RunPhiXe*.C
+phiXeXe/*.xml
+phiXeXe/RunPhiXe*.root
