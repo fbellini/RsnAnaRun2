@@ -35,11 +35,9 @@ R__LOAD_LIBRARY(./AliRsnMiniAnalysisTaskV2_cxx.so)
 
 TChain * CreateESDChain(TString esdpath=".", Int_t ifirst=-1, Int_t ilast=-1);
 
-void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 1, TString suffix="f0PbTest", Bool_t isLocalMerge = 1,
+void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 2, TString suffix="f0pp15nTest", Bool_t isLocalMerge = 1,
 			                   TString dataset = "LHC15n", Bool_t isMC = 0, Int_t aodN = 0,
-                  			 TString username="fbellini", TString aliPhysicsVer = "vAN-20190408_ROOT6-1");
-
-
+                  			 TString username="fbellini", TString aliPhysicsVer = "vAN-20190522_ROOT6-1");
 //------------------------------------------------------------------------------------
 // main
 //------------------------------------------------------------------------------------
@@ -373,17 +371,18 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   //Resonance task
   AliRsnMiniAnalysisTask * rsnAnaTask1 = (AliRsnMiniAnalysisTask*) AddTaskF0("f0_tpc2s_tofveto", 
                                                                              isMC, 
-                                                                             AliPIDResponse::kPBPB, 
+                                                                             AliPIDResponse::kPP, 
                                                                              triggerMask, 
                                                                              enaMultSel,
                                                                              eventCutSet::kEvtDefault,
                                                                              pairYCutSet::kPairDefault,
                                                                              5,
                                                                              AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s,
-                                                                             3.0,
+                                                                             2.0,
                                                                              0.3,
-                                                                             1.6,
-                                                                             260,
+                                                                             1.8,
+                                                                             1500,
+                                                                             enableMon,
                                                                              enableMon);
   //local test
   AliRsnMiniAnalysisTaskV2 * rsnAnaTaskV2  = 0x0;
