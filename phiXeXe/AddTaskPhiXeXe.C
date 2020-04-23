@@ -8,11 +8,12 @@ Macro to add task for phi analysis in XeXe
 #endif
 
 AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Int_t selectTaskConfig = 0, Bool_t isMC = kFALSE, TString multEstimator = "AliMultSelection_V0M");
-AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t      isMC = kFALSE,
+AliRsnMiniAnalysisTask * AddTaskPhiXeXe( Bool_t isMC = kFALSE,
 					 AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate = AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s,
 					 Float_t     nsigmaTPC = 2.0,
 					 Float_t     nsigmaTOF = 2.0,
 					 Int_t       aodFilterBit = 5,
+           Int_t       qCut = 100,
 					 TString     multEstimator = "AliMultSelection_V0M",  
 					 Int_t       nmix = 5,
 					 Bool_t      enableMonitor = kTRUE,
@@ -22,43 +23,28 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Int_t selectTaskConfig, Bool_t isMC, TSt
 {
   //Select cuts configuration and returns the corresponding add task
   AliRsnMiniAnalysisTask * task = 0x0;
-  
   switch (selectTaskConfig){
-  case 1 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof3sveto");
-    break;
   case 2 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 3.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3s_tof3sveto");
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 3.0, 5, 100, multEstimator.Data(), 5, kTRUE, "tpc2s_tof3sveto");
     break;
   case 3 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto4s, 2.0, 4.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof4sveto");
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 3.0, 3.0, 5, 100, multEstimator.Data(), 5, kTRUE, "tpc3s_tof3sveto");
     break;
   case 4 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTPCpidNsigma, 3.0, 10.0,  5, multEstimator.Data(), 5, kTRUE, "tpc3s");
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTPCpidNsigma, 2.0, 10.0,  5, 100, multEstimator.Data(), 5, kTRUE, "tpc2s");
     break;
-  case 5 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTOFpidNsigma, 10.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tof3s");
+  case 101 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, 101, multEstimator.Data(), 5, kTRUE, "default_LowBdca");    
     break;
-  case 6 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidphipp2015, 2.0, 10.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep");    
-    break;
-  case 7 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto");    
-    break;
-  case 8 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 2.0, 2.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof2sveto");    
-    break;
-  case 9 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 3.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3sPtDep_tof3sveto");    
-    break;
-  case 10 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof2sveto5smism");    
-    break;
-  case 11 :
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoElRejPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto_elRej");    
+  case 102 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, 102, multEstimator.Data(), 5, kTRUE, "default_GeoCut");    
+    break;  
+  case 103 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, 103, multEstimator.Data(), 5, kTRUE, "default_LowBdcaGeo");    
     break;
   default:
-    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3s");    
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, 100, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto5smism");    
+//  task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3s");    
   }
 
   return task;
@@ -66,7 +52,7 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Int_t selectTaskConfig, Bool_t isMC, TSt
 
 
 AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticle::ERsnDaughterCutSet cutKaCandidate, Float_t nsigmaTPC, Float_t nsigmaTOF,
-					Int_t aodFilterBit, TString multEstimator, Int_t nmix, Bool_t enableMonitor, TString outNameSuffix)
+					                              Int_t aodFilterBit, Int_t qCut, TString multEstimator, Int_t nmix, Bool_t enableMonitor, TString outNameSuffix)
 {  
   //-------------------------------------------
   // event cuts
@@ -116,7 +102,6 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticl
    // -- EVENT CUTS (same for all configs) ---------------------------------------------------------
    //   
    AliRsnCutEventUtils* cutEventUtils = new AliRsnCutEventUtils("cutEventUtils", kTRUE, rejectPileUp);
-   //cutEventUtils->SetRemovePileUppA2013(kFALSE);
    cutEventUtils->SetCheckAcceptedMultSelection();
    Printf("AddTaskPhiXeXe :::: Centrality estimator: %s", multEstimator.Data());
    
@@ -141,7 +126,6 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticl
    // ------------------------------------------------------
    // PAIR CUTS (common to all resonances) 
    // ------------------------------------------------------
-
    AliRsnCutMiniPair *cutY = new AliRsnCutMiniPair("cutRapidity", AliRsnCutMiniPair::kRapidityRange);
    cutY->SetRangeD(minYlab, maxYlab);
    
@@ -153,11 +137,11 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticl
    // CONFIG ANALYSIS
    // ------------------------------------------------------
 #if !defined (__CINT__) || defined (__CLING__)
-   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, -1, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kTRUE, kFALSE);
+   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, qCut, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kTRUE, kFALSE);
 #else
    //gROOT->LoadMacro("$ALICE_PHYSICS/PWGLF/RESONANCES/macros/mini/ConfigPhiXeXe.C");
    gROOT->LoadMacro("./ConfigPhiXeXe.C");
-   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, -1, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kTRUE, kFALSE);
+   ConfigPhiXeXe(task, isMC, outNameSuffix.Data(), cutsPair, aodFilterBit, qCut, cutKaCandidate, nsigmaTPC, nsigmaTOF, 15.0, enableMonitor, kTRUE, kFALSE);
 #endif
    
    //
@@ -176,3 +160,44 @@ AliRsnMiniAnalysisTask * AddTaskPhiXeXe(Bool_t isMC, AliRsnCutSetDaughterParticl
    return task;
 }
 
+
+
+
+/* 2018 edition
+ switch (selectTaskConfig){
+  case 1 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof3sveto");
+    break;
+  case 2 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto3s, 3.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3s_tof3sveto");
+    break;
+  case 3 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidTOFveto4s, 2.0, 4.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2s_tof4sveto");
+    break;
+  case 4 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTPCpidNsigma, 3.0, 10.0,  5, multEstimator.Data(), 5, kTRUE, "tpc3s");
+    break;
+  case 5 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kFastTOFpidNsigma, 10.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tof3s");
+    break;
+  case 6 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCpidphipp2015, 2.0, 10.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep");    
+    break;
+  case 7 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto");    
+    break;
+  case 8 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 2.0, 2.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof2sveto");    
+    break;
+  case 9 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFpidphipp2015, 3.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc3sPtDep_tof3sveto");    
+    break;
+  case 10 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof2sveto5smism");    
+    break;
+  case 11 :
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFvetoElRejPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3sveto_elRej");    
+    break;
+  default:
+    task = (AliRsnMiniAnalysisTask *) AddTaskPhiXeXe(isMC, AliRsnCutSetDaughterParticle::kTPCTOFPhiXeXe, 2.0, 3.0, 5, multEstimator.Data(), 5, kTRUE, "tpc2sPtDep_tof3s");    
+  } */
