@@ -2,8 +2,8 @@
 #include "TCanvas.h"
 #include "TH1.h"
 #include <iostream>
-#include "/Users/fbellini/alice/macros/SetStyle.C"
-#include "/Users/fbellini/alice/macros/MakeUp.C"
+#include "/Users/fbellini/alice/macros/cosmetics/SetStyle.C"
+#include "/Users/fbellini/alice/macros/cosmetics/MakeUp.C"
 
 void plotf0toPionVsE(Bool_t plotLogy = 1)
 {
