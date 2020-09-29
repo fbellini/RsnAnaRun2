@@ -29,17 +29,22 @@ Usage:
 // #endif
 
 TChain * CreateESDChain(TString esdpath=".",Int_t ifirst=-1,Int_t ilast=-1);
-void     RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 2, TString suffix="Xe200421esd",   Bool_t isLocalMerge = 0,
-			 TString dataset = "LHC17n", Bool_t isMC = 0, Int_t aodN = -1,
-			 TString username="fbellini", TString aliPhysicsVer = "vAN-20200409_ROOT6-1");
+
+void RunGridRsnTrain(TString pluginmode="test", Short_t ntest = 2, TString suffix="Xe0909",   Bool_t isLocalMerge = 0,
+       Bool_t isMC = 0, TString dataset = "LHC17n", 
+       TString aliPhysicsVer = "vAN-20200901_ROOT6-1", 
+       Int_t aodN = -1,
+			 TString username="fbellini");
 
 void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t isLocalMerge,
-		     TString dataset, Bool_t isMC, Int_t aodN,
-		     TString username, TString aliPhysicsVer)
+		     Bool_t isMC, TString dataset,
+         TString aliPhysicsVer,
+         Int_t aodN,
+		     TString username)
 {
 
   //------------------------------------------------------------------------------------
-  //--------------------------------- LIBRARIES ---------------------------------------
+  //--------------------------------- LIBRARI "ES ---------------------------------------
   //-----------------------------------------------------------------------------------    
 
 #if !defined (CINT) || defined (CLING)
@@ -72,7 +77,6 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   Int_t * runList;
   Int_t runNmin = 0;
   Int_t runNmax = 2;
-  
   // ESD/AOD analysis
   Bool_t isESD = ((aodN<0)? 1 : 0);
   
@@ -97,9 +101,11 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     runList = LHC17n;
     data = "LHC17n";
     ppass = 1;
-    sim =  "LHC17j7_2"; //LHC17j7_ZDCfix, LHC17j7_ZDCfix_extra
+    sim =  "LHC17j7_3"; //LHC17j7_ZDCfix, LHC17j7_ZDCfix_extra
     yearData = 2017;
     yearMC = 2017;
+    //AODnumber = 227; //https://twiki.cern.ch/twiki/bin/view/ALICE/AODsets
+    //AODnumberMC = 226;
   }
   
   //------------------------------------------------------------------------------------
@@ -213,11 +219,11 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     plugin->SetExecutableCommand("root -b -q");
     plugin->SetMaxInitFailed(15);
     plugin->SetMasterResubmitThreshold(10);
-    plugin->SetTTL(50000);
+    plugin->SetTTL(10000);
     plugin->SetInputFormat("xml-single");
     if (isESD) plugin->SetSplitMaxInputFileNumber(20);
     else plugin->SetSplitMaxInputFileNumber(10);
-    plugin->SetMaxMergeFiles(25);
+    plugin->SetMaxMergeFiles(20);
     plugin->SetSplitMode("se");
   
     // Set properly the global flac to enable/disable local or plugin merging  
@@ -247,10 +253,10 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
   /* Settings for the train  */
   Bool_t enaMultSel = kTRUE;
   Bool_t runMonOnly = kFALSE;
-  Bool_t enableMon = kTRUE;
+  Bool_t enableMon = kFALSE;
   
   /* settings for event mixing */
-  Int_t nmix = 5; 
+  //Int_t nmix = 5; 
   
   //------------------------------------------------------------------------------------
   //--------------------------------- CONFIGURE TRAIN ----------------------------------
@@ -304,14 +310,11 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon)  AliAnalysisTask* pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
     
     //Resonance task
-    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(2, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask4 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(4, kFALSE)"));
-    AliRsnMiniAnalysisTask* rsnAnaTask101 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(101, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask102 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(102, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask103 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(103, kFALSE)"));
-  
+    AliRsnMiniAnalysisTask* rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(0, 1)"));   //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, 1)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, 1)"));   //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, 1)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(2, 1)"));   //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, 1)"));
+    //AliRsnMiniAnalysisTask* rsnAnaTask11 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(11, 1)"));   //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, 1)"));
+
   } else {
 
     Printf(":::::::::::: PROCESSING DATA");
@@ -328,16 +331,10 @@ void RunGridRsnTrain(TString pluginmode, Short_t ntest, TString suffix, Bool_t i
     if (enableMon) AliAnalysisTask* pidQAtask = reinterpret_cast<AliAnalysisTask*>(gInterpreter->ExecuteMacro("$(ALICE_ROOT)/ANALYSIS/macros/AddTaskPIDqa.C"));
 
     //Resonance task
+    AliRsnMiniAnalysisTask* rsnAnaTask = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(0, kFALSE)"));
     AliRsnMiniAnalysisTask* rsnAnaTask1 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(1, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(2, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(3, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask4 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(4, kFALSE)"));
-    AliRsnMiniAnalysisTask* rsnAnaTask101 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(101, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask102 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(102, kFALSE)"));
-    //AliRsnMiniAnalysisTask* rsnAnaTask103 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(103, kFALSE)"));
-
-    //AliRsnMiniAnalysisTask* rsnAnaTask3 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(7, kFALSE)"));
-    //    AliRsnMiniAnalysisTask* rsnAnaTask4 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(11, kFALSE)"));
+    AliRsnMiniAnalysisTask* rsnAnaTask2 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(2, kFALSE)"));
+    //AliRsnMiniAnalysisTask* rsnAnaTask11 = reinterpret_cast<AliRsnMiniAnalysisTask*>(gInterpreter->ExecuteMacro("$HOME/alice/resonances/RsnAnaRun2/phiXeXe/AddTaskPhiXeXe.C(11, kFALSE)"));
     ::Info("AnalysisSetup", "Setup successful");
 
   }
