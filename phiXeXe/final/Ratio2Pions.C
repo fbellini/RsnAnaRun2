@@ -4,7 +4,7 @@
 void GetRatioSysStatSq_XeXe(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TH1F * piSys, TGraphErrors * phiStat, TGraphErrors * phiSys);
 void GetRatioSysStatSq_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TH1F * piSys, TGraphErrors * phiStat, TGraphErrors * phiSys);
 void GetRatio_XeXe(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TGraphErrors * phiStat);
-void GetRatio_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TGraphErrors * phiStat);
+void GetRatio_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TGraphErrors * piStat, TGraphErrors * phiStat);
 TGraphErrors * GetPhi2Pi_XeXe544(Bool_t sys = 0);
 TGraphErrors * GetPhi2Pi_PbPb502(Bool_t sys = 0);
 TGraphErrors * GetRatio_pp13(Int_t sys = 0);
@@ -121,13 +121,13 @@ void Ratio2Pions(Bool_t plotThermal = 0)
   TLegend * leg = new TLegend(0.2, 0.18, 0.45, 0.38, "#bf{ALICE}");
   myLegendSetUp(leg, 0.04);
   leg->AddEntry(gPhi2PiXeXe, "Xe-Xe #sqrt{#it{s}_{NN}} = 5.44 TeV", "p");
-  leg->AddEntry(gPhi2PiPbPb, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV Prelim.", "p");
+  leg->AddEntry(gPhi2PiPbPb, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "p");
   leg->AddEntry(gPhi2Pi_pp13_stat, "pp #sqrt{#it{s}} = 13 TeV", "p");
    
-  TLegend * leg2 = new TLegend(0.55, 0.23, 0.8, 0.38, "ALICE");
+  TLegend * leg2 = new TLegend(0.55, 0.23, 0.8, 0.38);
   myLegendSetUp(leg2, 0.04);
   leg2->AddEntry(gPhi2Pi_PbPb276TeV_stat, "Pb-Pb #sqrt{#it{s}_{NN}} = 2.76 TeV", "p"); // []
-  leg2->AddEntry(gPhi2Pi_pPb502TeV_stat, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV Prelim.", "p"); //  [EPJC 76 (2016) 245]
+  leg2->AddEntry(gPhi2Pi_pPb502TeV_stat, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "p"); //  [EPJC 76 (2016) 245]
   
   gStyle->SetPadBottomMargin(0.16);
   gStyle->SetPadLeftMargin(0.17);
@@ -159,14 +159,14 @@ void Ratio2Pions(Bool_t plotThermal = 0)
   fout->cd();
   /*gPhi2Pi_PbPb276TeV_syst->Write();
   gPhi2Pi_PbPb276TeV_stat->Write();
-  gPhi2PiPbPb_syst->Write();
-  gPhi2PiPbPb->Write();
   gPhi2Pi_pPb502TeV_stat->Write();
   gPhi2Pi_pPb502TeV_syst->Write();
   gPhi2Pi_pp13_stat->Write();
   gPhi2Pi_pp13_uncor->Write();
   gPhi2Pi_pp13_syst->Write();
   */
+  gPhi2PiPbPb_syst->Write();
+  gPhi2PiPbPb->Write();
   gPhi2PiXeXe_syst->Write();
   gPhi2PiXeXe->Write();
   c1->Write();
@@ -299,7 +299,7 @@ void GetRatio_XeXe(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TGrap
   return;
 }
 
-void GetRatio_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TGraphErrors * phiStat)
+void GetRatio_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TGraphErrors * piStat, TGraphErrors * phiStat)
 {
   if (!piStat  || !phiStat) return 0.0;
   Printf(":::: PhiCent = %i", phiCent);
@@ -309,13 +309,13 @@ void GetRatio_PbPb(Double_t &x, Double_t &y, Int_t phiCent, TH1F * piStat, TGrap
   Double_t phiYerr = 0.0;
 
   //centrality sums for pion yields
-  if (phiCent == 0){ //phi 0-10%, pions 0-5%, 5-10%
-    piYmerged = piStat->GetBinContent(1)*0.5 + piStat->GetBinContent(2)*0.5;
-    piYmergedErr = piStat->GetBinError(1)*0.5 + piStat->GetBinError(2)*0.5;
-  } else {
-    piYmerged = piStat->GetBinContent(2+phiCent);    
-    piYmergedErr = piStat->GetBinError(2+phiCent);  
-  }
+  //if (phiCent == 0){ //phi 0-10%, pions 0-5%, 5-10%
+  //piYmerged = piStat->GetBinContent(1)*0.5 + piStat->GetBinContent(2)*0.5;
+  //piYmergedErr = piStat->GetBinError(1)*0.5 + piStat->GetBinError(2)*0.5;
+  //} else {
+    piYmerged = piStat->GetY()[phiCent];    
+    piYmergedErr = piStat->GetEY()[phiCent];  
+  //}
   
   //Get Phi values
   Printf("::::: Centrality PbPb: %i, pion = %f +/- %f", phiCent, piYmerged, piYmergedErr);
@@ -451,20 +451,28 @@ TGraphErrors * GetPhi2Pi_XeXe544(Bool_t sys)
 
 TGraphErrors * GetPhi2Pi_PbPb502(Bool_t sys)
 {
-  TString PionPbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_YieldAndMeanPtSumPiwSys_PbPb5TeV.root";  
-  TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";
+
+  TString piFileName = ReadInputFromFile("piPbPb_dNdy.dat", "graph", 1, kBlue, "PbPb", 5.02);//"~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
+  TString phiFileName = ReadInputFromFile("phiPbPb_dNdy.dat", "graph", 1, kRed, "PbPb", 5.02);
+
+  //TString PionPbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_YieldAndMeanPtSumPiwSys_PbPb5TeV.root";  
+  //TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";
 
   //Get phi 
-  TFile * PbFile = TFile::Open(PbFileName.Data());
-  if (!PbFile) return 0; 
-  TGraphErrors *gPhi_dNdy_PbPb5TeV_stat = (TGraphErrors*) PbFile->Get("gYield_stat_phi");
-  TGraphErrors *gPhi_dNdy_PbPb5TeV_syst = (TGraphErrors*) PbFile->Get("gYield_syst_phi");
+  TFile * PhiFile = TFile::Open(phiFileName.Data());
+  if (!PhiFile) return 0; 
+  TGraphErrors *gPhi_dNdy_PbPb5TeV_stat = (TGraphErrors*) PhiFile->Get("stat");
+  TGraphErrors *gPhi_dNdy_PbPb5TeV_syst = (TGraphErrors*) PhiFile->Get("sys");
+  gPhi_dNdy_PbPb5TeV_stat->SetName("phi_dNdy_PbPb502TeV_stat");
+  gPhi_dNdy_PbPb5TeV_syst->SetName("phi_dNdy_PbPb502TeV_syst");
 
   //Get pi+ + pi-
-  TFile * PionPbFile = TFile::Open(PionPbFileName.Data());
-  if (!PionPbFile) return 0;
-  TH1F *gPi_dNdy_PbPb5TeV_stat = (TH1F*) PionPbFile->Get("hStdYieldSummedPion");
-  TH1F *gPi_dNdy_PbPb5TeV_syst = (TH1F*) PionPbFile->Get("hStdYieldSysSummedPion");
+  TFile * piFile = TFile::Open(piFileName.Data());
+  if (!piFile) return 0;
+  TGraphErrors *gPi_dNdy_PbPb5TeV_stat = (TGraphErrors*) piFile->Get("stat");
+  TGraphErrors *gPi_dNdy_PbPb5TeV_syst = (TGraphErrors*) piFile->Get("sys");
+  gPi_dNdy_PbPb5TeV_stat->SetName("pi_dNdy_PbPb502TeV_stat");
+  gPi_dNdy_PbPb5TeV_syst->SetName("pi_dNdy_PbPb502TeV_syst");
 
   TGraphErrors * gPhi2PiPbPb = new TGraphErrors(8);
   TGraphErrors * gPhi2PiPbPb_syst = new TGraphErrors(8);
@@ -477,8 +485,8 @@ TGraphErrors * GetPhi2Pi_PbPb502(Bool_t sys)
     gPhi2PiPbPb->SetPointError(cc, gPhi_dNdy_PbPb5TeV_stat->GetEX()[cc], ey);
     //syst
     GetRatio_PbPb(y, ey, cc, gPi_dNdy_PbPb5TeV_syst, gPhi_dNdy_PbPb5TeV_syst);
-    gPhi2PiPbPb_syst->SetPoint(cc, gPhi_dNdy_PbPb5TeV_stat->GetX()[cc], y);
-    gPhi2PiPbPb_syst->SetPointError(cc, gPhi_dNdy_PbPb5TeV_stat->GetEX()[cc], ey);
+    gPhi2PiPbPb_syst->SetPoint(cc, gPhi_dNdy_PbPb5TeV_syst->GetX()[cc], y);
+    gPhi2PiPbPb_syst->SetPointError(cc, gPhi_dNdy_PbPb5TeV_syst->GetEX()[cc], ey);
   }
 
   if (sys) return gPhi2PiPbPb_syst;

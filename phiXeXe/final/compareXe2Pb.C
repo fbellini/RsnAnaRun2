@@ -7,7 +7,7 @@ TPaveText * AddPhiText();
 void compareXe2Pb(Bool_t loglog = 0)
 {
   SetStyle();
-  TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
+  TString PbFileName = ReadInputFromFile("phiPbPb_dNdy.dat", "graph", 1, kBlue, "PbPb", 5.02);//"~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
   TString XeFileName = ReadInputFromFile("phiXeXe_dNdy.dat", "graph", 1, kRed, "XeXe", 5.44);
 
   TFile * XeFile = TFile::Open(XeFileName.Data());
@@ -24,11 +24,12 @@ void compareXe2Pb(Bool_t loglog = 0)
   TFile * PbFile = TFile::Open(PbFileName.Data());
   if (!PbFile) return;
 
-  TGraphErrors *gPhi_dNdy_PbPb5TeV_stat = (TGraphErrors*) PbFile->Get("gYield_stat_phi");
-  TGraphErrors *gPhi_dNdy_PbPb5TeV_syst = (TGraphErrors*) PbFile->Get("gYield_syst_phi");
-
-  BeautifyGraph(gPhi_dNdy_PbPb5TeV_stat, kGray+1, kGray+1, 0, 1, 1, 20, 1.); 
-  BeautifyGraph(gPhi_dNdy_PbPb5TeV_syst, kGray+1, kGray+1, 0, 1, 1, 20, 1.); 
+  TGraphErrors *gPhi_dNdy_PbPb5TeV_stat = (TGraphErrors*) PbFile->Get("stat"); //gYield_stat_phi
+  TGraphErrors *gPhi_dNdy_PbPb5TeV_syst = (TGraphErrors*) PbFile->Get("sys"); //gYield_syst_phi
+  BeautifyGraph(gPhi_dNdy_PbPb5TeV_stat, kBlue, kBlue, 0, 1, 1, 20, 1.); 
+  BeautifyGraph(gPhi_dNdy_PbPb5TeV_syst, kBlue, kBlue, 0, 1, 1, 20, 1.); 
+  gPhi_dNdy_PbPb5TeV_stat->SetName("phi_dNdy_PbPb502TeV_stat");
+  gPhi_dNdy_PbPb5TeV_syst->SetName("phi_dNdy_PbPb502TeV_syst");
 
   TH1F* hf = new TH1F("frame","", 2.E3, 0., 2.0E3);
   hf->SetMinimum(0.1);
@@ -55,7 +56,7 @@ void compareXe2Pb(Bool_t loglog = 0)
 
   TLegend * leg = new TLegend(0.22, 0.7, 0.52, 0.90, "#bf{ALICE}");
   myLegendSetUp(leg, 0.05);
-  leg->AddEntry(gPhi_dNdy_PbPb5TeV_stat, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV (prel)", "p");
+  leg->AddEntry(gPhi_dNdy_PbPb5TeV_stat, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "p");
   leg->AddEntry(gPhi_dNdy_XeXe5TeV_stat, "Xe-Xe #sqrt{#it{s}_{NN}} = 5.44 TeV", "p");
 
   TPaveText * phitext = (TPaveText *) AddPhiText();
@@ -85,7 +86,8 @@ void compareXe2Pb(Bool_t loglog = 0)
 void compareXe2PbMeanPt(Bool_t loglog = 0)
 {
   SetStyle();
-  TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
+  //TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
+  TString PbFileName = ReadInputFromFile("phiPbPb_meanpt.dat", "graph", 1, kBlue, "PbPb", 5.02);//"~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
   TString XeFileName = ReadInputFromFile("phiXeXe_meanpt.dat", "graph", 1, kRed, "XeXe", 5.44);
 
   TFile * XeFile = TFile::Open(XeFileName.Data());
@@ -96,15 +98,19 @@ void compareXe2PbMeanPt(Bool_t loglog = 0)
 
   BeautifyGraph(gPhi_meanPt_XeXe5TeV_stat, kRed, kRed, 0, 1, 1, 21, 1.); 
   BeautifyGraph(gPhi_meanPt_XeXe5TeV_syst, kRed, kRed, 0, 1, 1, 21, 1.);
-  
+  gPhi_meanPt_XeXe5TeV_stat->SetName("phi_meanpt_XeXe544TeV_stat");
+  gPhi_meanPt_XeXe5TeV_syst->SetName("phi_meanpt_XeXe544TeV_syst");
+
   TFile * PbFile = TFile::Open(PbFileName.Data());
   if (!PbFile) return;
 
-  TGraphErrors *gPhi_meanPt_PbPb5TeV_stat = (TGraphErrors*) PbFile->Get("gMeanPt_stat_phi");
-  TGraphErrors *gPhi_meanPt_PbPb5TeV_syst = (TGraphErrors*) PbFile->Get("gMeanPt_syst_phi");
+  TGraphErrors *gPhi_meanPt_PbPb5TeV_stat = (TGraphErrors*) PbFile->Get("stat");//PbFile->Get("gMeanPt_stat_phi");
+  TGraphErrors *gPhi_meanPt_PbPb5TeV_syst = (TGraphErrors*) PbFile->Get("sys");//PbFile->Get("gMeanPt_syst_phi");
 
-  BeautifyGraph(gPhi_meanPt_PbPb5TeV_stat, kGray+1, kGray+1, 0, 1, 1, 20, 1.3); 
-  BeautifyGraph(gPhi_meanPt_PbPb5TeV_syst, kGray+1, kGray+1, 0, 1, 1, 20, 1.3); 
+  BeautifyGraph(gPhi_meanPt_PbPb5TeV_stat, kBlue, kBlue, 0, 1, 1, 20, 1.3); 
+  BeautifyGraph(gPhi_meanPt_PbPb5TeV_syst, kBlue, kBlue, 0, 1, 1, 20, 1.3); 
+  gPhi_meanPt_PbPb5TeV_stat->SetName("phi_meanpt_PbPb502TeV_stat");
+  gPhi_meanPt_PbPb5TeV_syst->SetName("phi_meanpt_PbPb502TeV_syst");
 
   TH1F* hf = new TH1F("frame","", 2.E3, 0., 2.0E3);
   hf->SetMinimum(0.5);
@@ -131,7 +137,7 @@ void compareXe2PbMeanPt(Bool_t loglog = 0)
   
   TLegend * leg = new TLegend(0.22, 0.7, 0.52, 0.90, "#bf{ALICE}");
   myLegendSetUp(leg, 0.05);
-  leg->AddEntry(gPhi_meanPt_PbPb5TeV_stat, "Pb-Pb, #sqrt{#it{s}_{NN}} = 5.02 TeV (prel)", "p");
+  leg->AddEntry(gPhi_meanPt_PbPb5TeV_stat, "Pb-Pb, #sqrt{#it{s}_{NN}} = 5.02 TeV", "p");
   leg->AddEntry(gPhi_meanPt_XeXe5TeV_stat, "Xe-Xe, #sqrt{#it{s}_{NN}} = 5.44 TeV", "p");
 
   TPaveText * phitext = (TPaveText *) AddPhiText();
@@ -153,6 +159,8 @@ void compareXe2PbMeanPt(Bool_t loglog = 0)
   foutXe->cd();
   gPhi_meanPt_XeXe5TeV_syst->Write();
   gPhi_meanPt_XeXe5TeV_stat->Write();
+  gPhi_meanPt_PbPb5TeV_stat->Write();
+  gPhi_meanPt_PbPb5TeV_syst->Write();
   foutXe->Close();
   return;
 }
