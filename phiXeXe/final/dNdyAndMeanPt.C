@@ -4,11 +4,11 @@ void dNdyAndMeanPt()
   const Short_t nfunc = 5;
   const Short_t ncent = 5;
   TFile * file[nfunc];
-  file[0] = TFile::Open("FITSPECTRUM_bgbw_0.5-10.0_16sep20.root");
-  file[1] = TFile::Open("FITSPECTRUM_boltz_0.5-10.0_16sep20.root");
-  file[2] = TFile::Open("FITSPECTRUM_bose_0.5-10.0_16sep20.root");
-  file[3] = TFile::Open("FITSPECTRUM_levy_0.5-10.0_16sep20.root");
-  file[4] = TFile::Open("FITSPECTRUM_mtexp_0.5-10.0_16sep20.root");
+  file[0] = TFile::Open("FITSPECTRUM_bgbw_0.5-10.0_30oct20.root");
+  file[1] = TFile::Open("FITSPECTRUM_boltz_0.5-10.0_30oct20.root");
+  file[2] = TFile::Open("FITSPECTRUM_bose_0.5-10.0_30oct20.root");
+  file[3] = TFile::Open("FITSPECTRUM_levy_0.5-10.0_30oct20.root");
+  file[4] = TFile::Open("FITSPECTRUM_mtexp_0.5-10.0_30oct20.root");
 
   TH1F * fitResults[ncent][nfunc];
 

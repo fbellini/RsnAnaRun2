@@ -4,7 +4,7 @@
 
 TPaveText * AddPhiText();
 
-void compareXe2Pb(Bool_t loglog = 0, TString date = "20200916")
+void compareXe2Pb(Bool_t loglog = 0)
 {
   SetStyle();
   TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  
@@ -82,7 +82,7 @@ void compareXe2Pb(Bool_t loglog = 0, TString date = "20200916")
   return;
 }
 
-void compareXe2PbMeanPt(Bool_t loglog = 0, TString date = "20200916")
+void compareXe2PbMeanPt(Bool_t loglog = 0)
 {
   SetStyle();
   TString PbFileName = "~/alice/resonances/RsnAnaRun2/phiXeXe/preliminaryQM18/Preliminary_PhidNdYMeanPtV0M_PbPb5TeV.root";  

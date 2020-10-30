@@ -1,10 +1,10 @@
 void FixSpectraRange()
 {
-    TFile fin("FINAL_Spectra_phi_XeXe544TeV.root", "read");
+    TFile fin("Spectra_phi_XeXe544TeV.root", "read");
     TH1D * hin[5];
     TH1D * hinsy[5];
 
-    TFile fout("Reranged_FINAL_Spectra_phi_XeXe544TeV.root", "recreate");
+    TFile fout("FINAL_Spectra_phi_XeXe544TeV.root", "recreate");
     for (int j=0;j<5;j++){ 
       hin[j] = (TH1D*) fin.Get(Form("hCorrected_%i", j));   
       hinsy[j] = (TH1D*) fin.Get(Form("hCorrected_%i%i_syst", j, j));  
