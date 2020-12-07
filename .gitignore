@@ -34,3 +34,9 @@ phiXeXe/RunPhiXe*.sh
 phiXeXe/RunPhiXe*.C
 phiXeXe/*.xml
 phiXeXe/RunPhiXe*.root
+phiXeXe/*/*.png
+phiXeXe/*/*.eps
+phiXeXe/*/*.pdf
+phiXeXe/*/*/*.png
+phiXeXe/*/*/*.eps
+phiXeXe/*/*/*.pdf
