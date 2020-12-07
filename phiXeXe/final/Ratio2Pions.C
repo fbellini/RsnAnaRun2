@@ -11,7 +11,7 @@ TGraphErrors * GetRatio_pp13(Int_t sys = 0);
 TGraphAsymmErrors *  GetRatio_PbPb276(Bool_t sys = 0);
 TGraphAsymmErrors *  GetRatio_pPb502(Bool_t sys = 0);
 
-void Ratio2Pions(Bool_t plotThermal = 0)
+void Ratio2Pions(Bool_t plotThermal = 1)
 {
   SetStyle();
 
@@ -122,12 +122,14 @@ void Ratio2Pions(Bool_t plotThermal = 0)
   myLegendSetUp(leg, 0.04);
   leg->AddEntry(gPhi2PiXeXe, "Xe-Xe #sqrt{#it{s}_{NN}} = 5.44 TeV", "p");
   leg->AddEntry(gPhi2PiPbPb, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "p");
-  leg->AddEntry(gPhi2Pi_pp13_stat, "pp #sqrt{#it{s}} = 13 TeV", "p");
+  leg->AddEntry(gPhi2Pi_PbPb276TeV_stat, "Pb-Pb #sqrt{#it{s}_{NN}} = 2.76 TeV", "p"); // []
    
-  TLegend * leg2 = new TLegend(0.55, 0.23, 0.8, 0.38);
+  TLegend * leg2 = new TLegend(0.55, 0.18, 0.8, 0.38);
   myLegendSetUp(leg2, 0.04);
-  leg2->AddEntry(gPhi2Pi_PbPb276TeV_stat, "Pb-Pb #sqrt{#it{s}_{NN}} = 2.76 TeV", "p"); // []
+  leg2->AddEntry(gPhi2Pi_pPb502TeV_stat, " ", ""); //  [EPJC 76 (2016) 245]
   leg2->AddEntry(gPhi2Pi_pPb502TeV_stat, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "p"); //  [EPJC 76 (2016) 245]
+  leg2->AddEntry(gPhi2Pi_pp13_stat, "pp #sqrt{#it{s}} = 13 TeV (PREL)", "p");
+  leg2->AddEntry(gPhi2Pi_pPb502TeV_stat, " ", ""); //  [EPJC 76 (2016) 245]
   
   gStyle->SetPadBottomMargin(0.16);
   gStyle->SetPadLeftMargin(0.17);

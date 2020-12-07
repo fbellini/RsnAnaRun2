@@ -4,11 +4,11 @@ void dNdyAndMeanPt()
   const Short_t nfunc = 5;
   const Short_t ncent = 5;
   TFile * file[nfunc];
-  file[0] = TFile::Open("FITSPECTRUM_bgbw_0.5-10.0_30oct20.root");
-  file[1] = TFile::Open("FITSPECTRUM_boltz_0.5-10.0_30oct20.root");
-  file[2] = TFile::Open("FITSPECTRUM_bose_0.5-10.0_30oct20.root");
-  file[3] = TFile::Open("FITSPECTRUM_levy_0.5-10.0_30oct20.root");
-  file[4] = TFile::Open("FITSPECTRUM_mtexp_0.5-10.0_30oct20.root");
+  file[0] = TFile::Open("FITSPECTRUM_bgbw_0.5-10.0_04dec20.root");
+  file[3] = TFile::Open("FITSPECTRUM_levy_0.5-10.0_04dec20.root");
+  file[1] = TFile::Open("FITSPECTRUM_boltz_0.5-5.0_04dec20.root");
+  file[2] = TFile::Open("FITSPECTRUM_bose_0.5-5.0_04dec20.root");
+  file[4] = TFile::Open("FITSPECTRUM_mtexp_0.5-5.0_04dec20.root");
 
   TH1F * fitResults[ncent][nfunc];
 
@@ -44,8 +44,10 @@ void dNdyAndMeanPt()
     Float_t totSysMpt = TMath::Sqrt( TMath::Power(fitResults[ic][0]->GetBinContent(7), 2.0) + TMath::Power(meanptExtrapErr, 2.0) );
     Printf("dN/dy = %8.4f +- %8.4f (stat) +- %8.4f (sys) +- %8.4f (extrap, %3.1f%%) -- tot sys = %8.4f", 
     	   fitResults[ic][0]->GetBinContent(1), fitResults[ic][0]->GetBinContent(2), fitResults[ic][0]->GetBinContent(3), yieldExtrapErr, yieldExtrapErr*100./fitResults[ic][0]->GetBinContent(1), totSys);
-    
     Printf(" <pT> = %8.4f +- %8.4f (stat) +- %8.4f (sys) +- %8.4f (extrap, %3.1f%%) -- tot sys = %8.4f", fitResults[ic][0]->GetBinContent(5), fitResults[ic][0]->GetBinContent(6), fitResults[ic][0]->GetBinContent(7), meanptExtrapErr, meanptExtrapErr*100./fitResults[ic][0]->GetBinContent(5), totSysMpt);
+    //Printf("dN/dy = %8.4f %8.4f %8.4f", fitResults[ic][0]->GetBinContent(1), fitResults[ic][0]->GetBinContent(2), totSys);
+    
+    //Printf(" <pT> = %8.4f %8.4f %8.4f", fitResults[ic][0]->GetBinContent(5), fitResults[ic][0]->GetBinContent(6), totSysMpt);
   }
   return;
 
