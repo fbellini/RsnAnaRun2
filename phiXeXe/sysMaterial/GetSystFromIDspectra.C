@@ -4,7 +4,7 @@ enum ETypeUnc { kMaterial= 0,
 		kTrackCuts};
 
 TH1F * getITSTPCMatchingUncertXeXe();
-void getTrackCutsUncertaintyFromChargedXeXe(Int_t ncentbins = 4);
+void getTrackCutsUncertaintyFromChargedXeXe(Int_t ncentbins = 5);
 TString GetTypeName(Int_t type = 0);
 
 Double_t getDaughterPeakPtSymmetricDecay(Double_t motherPt = 1.0);
@@ -18,7 +18,7 @@ void GetSystFromIDspectra(Int_t type = ETypeUnc::kMaterial , Bool_t usePhaseSpac
   if (type == kMaterial) filename = "/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/COMMON_sysErrRelMaterial.root";
   if (type == kHadrInt) filename = "/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/COMMON_sysErrRelInleasticXSec.root";
   if (type == kITSTPCmatch) filename = "/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/COMMON_sysITSTPCmatchingXeXe.root";
-  if (type == kTrackCuts) filename = "COMMON_sysTrackCutsXeXe.root";
+  if (type == kTrackCuts) filename = "/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/COMMON_sysTrackCutsXeXe.root";
   //
   //get pt-dependent systematic uncert due to material budget estimate, for phi analysis
   //
@@ -107,7 +107,7 @@ Double_t getDaughterPeakPtSymmetricDecay(Double_t motherPt)
 
 Double_t getDaughterPeakPtPhaseSpace(Int_t motherPtBin, Int_t daughId)
 {
-  TFile * fin = TFile::Open("phi_PhaseSpace.root");
+  TFile * fin = TFile::Open("/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/phi_PhaseSpace.root");
   TString histname = Form("phi_1std_pt%i", motherPtBin);
   if (daughId==2) histname = Form("phi_2nsd_pt%i", motherPtBin);
   TH1D * hin = (TH1D*) fin->Get(histname.Data());
@@ -156,71 +156,105 @@ void getTrackCutsUncertaintyFromChargedXeXe(Int_t ncentbins)
     fin[ic+1] = TFile::Open(Form("/Users/fbellini/alice/resonances/RsnAnaRun2/phiXeXe/sysMaterial/systContributions-XeXe-5TeV_c%i%i.root", 10*ic, 10*(ic+1)));
     hin[ic+1] = (TH1D *) fin[ic+1]->Get("uncTrkCuts");
   }
-  Color_t color[4] = {kRed+1, kOrange, kSpring+5, kBlue+1};
+  Color_t color[5] = {kRed+1, kOrange, kSpring+5, kBlue+1, kViolet+3};
   Float_t weight[10] = {1167.*0.5, 939.*0.5, 706., 478., 315., 198., 118., 64.7, 32.0, 13.3};
   TFile * fout = new TFile("COMMON_sysTrackCutsXeXe.root", "recreate");
    
   for (int ic = 0; ic<ncentbins; ic++){  
     TH1D * hist = 0x0;
-    if (ncentbins==3) {
+    if (ncentbins==5) {
+      if (ic==0){ //0-10
+        hin[0]->Scale(weight[0]);
+        hin[1]->Scale(weight[1]);
+        hist = (TH1D*)hin[0]->Clone("hSys");
+        hist->Add(hin[1]);
+        hist->Add(hin[2]);
+        hist->Scale(1./(weight[0]+weight[1]));
+      } else if (ic==1){ //10-30
+        hin[2]->Scale(weight[2]);
+        hin[3]->Scale(weight[3]);
+        hist = (TH1D*)hin[0]->Clone("hSys");
+        hist->Add(hin[2]);
+        hist->Add(hin[3]);
+        hist->Scale(1./(weight[2]+weight[3]));
+      } else if (ic==2) { //30-50
+        hin[4]->Scale(weight[4]);
+        hin[5]->Scale(weight[5]);
+        hist = (TH1D*)hin[4]->Clone("hSys");
+        hist->Add(hin[5]);
+        hist->Scale(1./(weight[4]+weight[5]));
+      }	else if (ic==3) { //50-70
+        hin[6]->Scale(weight[6]);
+        hin[7]->Scale(weight[7]);
+        hist = (TH1D*)hin[6]->Clone("hSys");
+        hist->Add(hin[7]);
+        hist->Scale(1./(weight[6]+weight[7]));
+      } else if (ic==4) { //70-90
+        hin[8]->Scale(weight[8]);
+        hin[9]->Scale(weight[9]);
+        hist = (TH1D*)hin[8]->Clone("hSys");
+        hist->Add(hin[9]);
+        hist->Scale(1./(weight[8]+weight[9]));
+      }
+    } else if (ncentbins==3) {
       if (ic==0){
-	hin[0]->Scale(weight[0]);
-	hin[1]->Scale(weight[1]);
-	hin[2]->Scale(weight[2]);
-	hin[3]->Scale(weight[3]);
-	hist = (TH1D*)hin[0]->Clone("hSys");
-	hist->Add(hin[1]);
-	hist->Add(hin[2]);
-	hist->Add(hin[3]);
-	hist->Scale(1./(weight[0]+weight[1]+weight[2]+weight[3]));
+        hin[0]->Scale(weight[0]);
+        hin[1]->Scale(weight[1]);
+        hin[2]->Scale(weight[2]);
+        hin[3]->Scale(weight[3]);
+        hist = (TH1D*)hin[0]->Clone("hSys");
+        hist->Add(hin[1]);
+        hist->Add(hin[2]);
+        hist->Add(hin[3]);
+        hist->Scale(1./(weight[0]+weight[1]+weight[2]+weight[3]));
       } else if (ic==1){
-	hin[4]->Scale(weight[4]);
-	hin[5]->Scale(weight[5]);
-	hin[6]->Scale(weight[6]);
-	hist = (TH1D*)hin[4]->Clone("hSys");
-	hist->Add(hin[5]);
-	hist->Add(hin[6]);
-	hist->Scale(1./(weight[4]+weight[5]+weight[6]));
+        hin[4]->Scale(weight[4]);
+        hin[5]->Scale(weight[5]);
+        hin[6]->Scale(weight[6]);
+        hist = (TH1D*)hin[4]->Clone("hSys");
+        hist->Add(hin[5]);
+        hist->Add(hin[6]);
+        hist->Scale(1./(weight[4]+weight[5]+weight[6]));
       }	else if (ic==2) {
-	hin[7]->Scale(weight[7]);
-	hin[8]->Scale(weight[8]);
-	hin[9]->Scale(weight[9]);
-	hist = (TH1D*)hin[7]->Clone("hSys");
-	hist->Add(hin[8]);
-	hist->Add(hin[9]);
-	hist->Scale(1./(weight[7]+weight[8]+weight[9]));
+        hin[7]->Scale(weight[7]);
+        hin[8]->Scale(weight[8]);
+        hin[9]->Scale(weight[9]);
+        hist = (TH1D*)hin[7]->Clone("hSys");
+        hist->Add(hin[8]);
+        hist->Add(hin[9]);
+        hist->Scale(1./(weight[7]+weight[8]+weight[9]));
       }
     } else {
       if (ic==0){
-	hin[0]->Scale(weight[0]);
-	hin[1]->Scale(weight[1]);
-	hist = (TH1D*)hin[0]->Clone("hSys");
-	hist->Add(hin[1]);
-	hist->Add(hin[2]);
-	hist->Scale(1./(weight[0]+weight[1]));
+        hin[0]->Scale(weight[0]);
+        hin[1]->Scale(weight[1]);
+        hist = (TH1D*)hin[0]->Clone("hSys");
+        hist->Add(hin[1]);
+        hist->Add(hin[2]);
+        hist->Scale(1./(weight[0]+weight[1]));
       } else if (ic==1){
-	hin[2]->Scale(weight[2]);
-	hin[3]->Scale(weight[3]);
-	hist = (TH1D*)hin[0]->Clone("hSys");
-	hist->Add(hin[2]);
-	hist->Add(hin[3]);
-	hist->Scale(1./(weight[2]+weight[3]));
+        hin[2]->Scale(weight[2]);
+        hin[3]->Scale(weight[3]);
+        hist = (TH1D*)hin[0]->Clone("hSys");
+        hist->Add(hin[2]);
+        hist->Add(hin[3]);
+        hist->Scale(1./(weight[2]+weight[3]));
       } else if (ic==2) {
-	hin[4]->Scale(weight[4]);
-	hin[5]->Scale(weight[5]);
-	hin[6]->Scale(weight[6]);
-	hist = (TH1D*)hin[4]->Clone("hSys");
-	hist->Add(hin[5]);
-	hist->Add(hin[6]);
-	hist->Scale(1./(weight[4]+weight[5]+weight[6]));
+        hin[4]->Scale(weight[4]);
+        hin[5]->Scale(weight[5]);
+        hin[6]->Scale(weight[6]);
+        hist = (TH1D*)hin[4]->Clone("hSys");
+        hist->Add(hin[5]);
+        hist->Add(hin[6]);
+        hist->Scale(1./(weight[4]+weight[5]+weight[6]));
       }	else if (ic==3) {
-	hin[7]->Scale(weight[7]);
-	hin[8]->Scale(weight[8]);
-	hin[9]->Scale(weight[9]);
-	hist = (TH1D*)hin[7]->Clone("hSys");
-	hist->Add(hin[8]);
-	hist->Add(hin[9]);
-	hist->Scale(1./(weight[7]+weight[8]+weight[9]));
+        hin[7]->Scale(weight[7]);
+        hin[8]->Scale(weight[8]);
+        hin[9]->Scale(weight[9]);
+        hist = (TH1D*)hin[7]->Clone("hSys");
+        hist->Add(hin[8]);
+        hist->Add(hin[9]);
+        hist->Scale(1./(weight[7]+weight[8]+weight[9]));
       }
     }      
     hist->Scale(0.01);
@@ -231,3 +265,5 @@ void getTrackCutsUncertaintyFromChargedXeXe(Int_t ncentbins)
   }
   return;
 }
+
+
